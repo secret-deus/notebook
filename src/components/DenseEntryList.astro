@@ -1,0 +1,61 @@
+---
+import type { NoteEntry, PostEntry } from '../lib/content';
+import { entryHref, entryTitle } from '../lib/content';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	entries: Array<PostEntry | NoteEntry>;
+	empty?: string;
+	showKind?: boolean;
+	clamp?: number;
+}
+
+const {
+	entries,
+	empty = '暂无内容',
+	showKind = false,
+	clamp,
+} = Astro.props;
+
+const list = typeof clamp === 'number' ? entries.slice(0, clamp) : entries;
+---
+
+{
+	list.length === 0 ? (
+		<p class="empty-hint">{empty}</p>
+	) : (
+		<ul class="dense-list">
+			{list.map((entry) => {
+				const date =
+					entry.collection === 'posts'
+						? entry.data.pubDate
+						: (entry.data.updatedDate ?? entry.data.pubDate);
+				const desc = entry.data.description;
+				const tags = entry.data.tags ?? [];
+				const kind = entry.collection === 'posts' ? '文章' : '笔记';
+				return (
+					<li>
+						<a class="dense-item" href={entryHref(entry)}>
+							<div class="dense-main">
+								<span class="dense-title">
+									{showKind && (
+										<span
+											class:list={['kind-dot', { note: entry.collection === 'notes' }]}
+											title={kind}
+										/>
+									)}
+									{entryTitle(entry)}
+								</span>
+								{desc && <span class="dense-desc">{desc}</span>}
+							</div>
+							<div class="dense-meta">
+								{date && <FormattedDate date={date} />}
+								{tags[0] && <span class="dense-tag">#{tags[0]}</span>}
+							</div>
+						</a>
+					</li>
+				);
+			})}
+		</ul>
+	)
+}

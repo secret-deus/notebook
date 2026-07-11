@@ -1,0 +1,27 @@
+---
+import { SITE_AUTHOR, SITE_TITLE } from '../consts';
+
+const year = new Date().getFullYear();
+---
+
+<footer>
+	<p>
+		&copy; {year}
+		{SITE_AUTHOR} · {SITE_TITLE}
+	</p>
+	<p class="meta">用 Obsidian 写笔记，用 Astro 建站。</p>
+</footer>
+
+<style>
+	footer {
+		border-top: 1px solid rgb(var(--line));
+		padding: 1.75rem 1rem 2.75rem;
+		text-align: center;
+		color: rgb(var(--muted));
+		font-size: 0.85em;
+		animation: fade-up var(--dur-slow) var(--ease-out) 120ms both;
+	}
+	footer p {
+		margin: 0.2rem 0;
+	}
+</style>

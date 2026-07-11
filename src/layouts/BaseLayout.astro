@@ -1,0 +1,37 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+
+interface Props {
+	title: string;
+	description?: string;
+	/** 宽内容区（列表/看板页） */
+	wide?: boolean;
+}
+
+const { title, description = '', wide = false } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={title} description={description} />
+	</head>
+	<body>
+		<Header />
+		<main class:list={[{ wide, boarded: wide }]}>
+			<slot />
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	main.boarded {
+		width: min(1180px, 100%);
+		max-width: 100%;
+		padding-left: var(--page-pad-x);
+		padding-right: var(--page-pad-x);
+	}
+</style>

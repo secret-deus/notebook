@@ -1,0 +1,1164 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import { SITE_AUTHOR, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import {
+	entryHref,
+	entryTitle,
+	getPublishedNotes,
+	getPublishedPosts,
+	getTagMap,
+} from '../lib/content';
+
+const posts = await getPublishedPosts();
+const notes = await getPublishedNotes();
+const tagEntries = [...(await getTagMap()).entries()].sort((a, b) => b[1].length - a[1].length);
+const tags = tagEntries.slice(0, 12);
+const featured = posts[0] ?? null;
+const morePosts = posts.slice(0, 8);
+const moreNotes = notes.slice(0, 12);
+
+const latestDate = (() => {
+	const dates = [
+		...posts.map((p) => p.data.pubDate),
+		...notes.map((n) => n.data.updatedDate ?? n.data.pubDate).filter(Boolean),
+	].filter((d): d is Date => d instanceof Date);
+	if (!dates.length) return null;
+	return dates.sort((a, b) => b.valueOf() - a.valueOf())[0];
+})();
+
+const totalTags = tagEntries.length;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+	</head>
+	<body class="home-body" data-gate="pending">
+		<!-- ========== 交互进入门禁 ========== -->
+		<div
+			id="gate"
+			class="gate"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="gate-title"
+			aria-describedby="gate-desc"
+		>
+			<div class="gate-bg" aria-hidden="true">
+				<div class="orb orb-a"></div>
+				<div class="orb orb-b"></div>
+				<div class="orb orb-c" data-cursor-orb></div>
+				<div class="grid-fade"></div>
+			</div>
+
+			<div class="gate-content">
+				<p class="gate-kicker">
+					<span class="dot"></span>
+					Personal knowledge garden
+				</p>
+				<h1 id="gate-title" class="gate-title" data-split>
+					{SITE_TITLE}
+				</h1>
+				<p id="gate-desc" class="gate-desc">{SITE_DESCRIPTION}</p>
+
+				<button type="button" class="gate-enter" id="gate-enter" aria-label="进入站点">
+					<span class="gate-enter-ring" aria-hidden="true"></span>
+					<span class="gate-enter-label">
+						点击进入
+						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+							<path
+								d="M3 8h10M9 4l4 4-4 4"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"></path>
+						</svg>
+					</span>
+				</button>
+				<p class="gate-hint">或按 <kbd>Enter</kbd> / <kbd>Space</kbd></p>
+			</div>
+
+			<div class="gate-reveal" id="gate-reveal" aria-hidden="true"></div>
+		</div>
+
+		<!-- ========== 站点主体：三栏信息板 ========== -->
+		<div class="home-shell" id="home-shell">
+			<Header />
+			<main class="home-main">
+				<div class="board">
+					<!-- 左栏：身份 / 导航 / 统计 / 写作流 -->
+					<aside class="rail rail-left reveal-col" style="--d: 0.06s">
+						<section class="panel profile">
+							<p class="eyebrow">About</p>
+							<h1 class="site-name">{SITE_TITLE}</h1>
+							<p class="bio">{SITE_DESCRIPTION}</p>
+							<p class="author meta">
+								作者 · <strong>{SITE_AUTHOR}</strong>
+								{
+									latestDate && (
+										<>
+											<br />
+											最近更新 · <FormattedDate date={latestDate} />
+										</>
+									)
+								}
+							</p>
+							<div class="cta-row">
+								<a class="btn btn-primary" href="/posts/">文章</a>
+								<a class="btn btn-ghost" href="/notes/">笔记</a>
+							</div>
+						</section>
+
+						<section class="panel">
+							<div class="panel-head">
+								<h2>快捷入口</h2>
+							</div>
+							<nav class="quick-nav">
+								<a href="/posts/"><span>全部文章</span><em>{posts.length}</em></a>
+								<a href="/notes/"><span>全部笔记</span><em>{notes.length}</em></a>
+								<a href="/tags/"><span>标签索引</span><em>{totalTags}</em></a>
+								<a href="/about/"><span>关于本站</span><em>→</em></a>
+								<a href="/rss.xml"><span>RSS 订阅</span><em>xml</em></a>
+							</nav>
+						</section>
+
+						<section class="panel">
+							<div class="panel-head">
+								<h2>内容概况</h2>
+							</div>
+							<div class="metric-grid">
+								<div class="metric">
+									<strong>{posts.length}</strong>
+									<span>文章</span>
+								</div>
+								<div class="metric">
+									<strong>{notes.length}</strong>
+									<span>笔记</span>
+								</div>
+								<div class="metric">
+									<strong>{totalTags}</strong>
+									<span>标签</span>
+								</div>
+								<div class="metric">
+									<strong>{posts.length + notes.length}</strong>
+									<span>合计</span>
+								</div>
+							</div>
+						</section>
+
+						<section class="panel tip">
+							<div class="panel-head">
+								<h2>写作流</h2>
+							</div>
+							<ol class="tip-list">
+								<li>Obsidian 里写笔记</li>
+								<li>公开页加 <code>publish: true</code></li>
+								<li><code>npm run sync:vault</code></li>
+								<li>本地预览后发布</li>
+							</ol>
+							<a class="text-link" href="/notes/写作约定/">查看写作约定 →</a>
+						</section>
+					</aside>
+
+					<!-- 中栏：文章主线 -->
+					<section class="rail rail-center reveal-col" style="--d: 0.14s">
+						{
+							featured ? (
+								<a class="featured" href={entryHref(featured)}>
+									<div class="featured-top">
+										<span class="pill">精选文章</span>
+										{featured.data.pubDate && (
+											<span class="meta">
+												<FormattedDate date={featured.data.pubDate} />
+											</span>
+										)}
+									</div>
+									<h2>{entryTitle(featured)}</h2>
+									{featured.data.description && <p>{featured.data.description}</p>}
+									{(featured.data.tags?.length ?? 0) > 0 && (
+										<div class="inline-tags">
+											{featured.data.tags!.slice(0, 4).map((tag) => (
+												<span class="tag">#{tag}</span>
+											))}
+										</div>
+									)}
+									<span class="read-more">继续阅读 →</span>
+								</a>
+							) : (
+								<div class="featured empty">
+									<h2>还没有文章</h2>
+									<p>在 <code>src/content/posts/</code> 新建 Markdown 即可出现在这里。</p>
+								</div>
+							)
+						}
+
+						<section class="panel fill">
+							<div class="panel-head">
+								<h2>文章列表</h2>
+								<a href="/posts/">全部 →</a>
+							</div>
+							{
+								morePosts.length === 0 ? (
+									<p class="empty-hint meta">暂无文章</p>
+								) : (
+									<ul class="dense-list">
+										{morePosts.map((entry) => (
+											<li>
+												<a class="dense-item" href={entryHref(entry)}>
+													<div class="dense-main">
+														<span class="dense-title">{entryTitle(entry)}</span>
+														{entry.data.description && (
+															<span class="dense-desc">{entry.data.description}</span>
+														)}
+													</div>
+													<div class="dense-meta">
+														{entry.data.pubDate && <FormattedDate date={entry.data.pubDate} />}
+														{(entry.data.tags?.length ?? 0) > 0 && (
+															<span class="dense-tag">#{entry.data.tags![0]}</span>
+														)}
+													</div>
+												</a>
+											</li>
+										))}
+									</ul>
+								)
+							}
+						</section>
+					</section>
+
+					<!-- 右栏：笔记 + 标签 -->
+					<aside class="rail rail-right reveal-col" style="--d: 0.22s">
+						<section class="panel fill">
+							<div class="panel-head">
+								<h2>最近笔记</h2>
+								<a href="/notes/">全部 →</a>
+							</div>
+							{
+								moreNotes.length === 0 ? (
+									<p class="empty-hint meta">暂无笔记</p>
+								) : (
+									<ul class="dense-list notes">
+										{moreNotes.map((entry) => {
+											const date = entry.data.updatedDate ?? entry.data.pubDate;
+											return (
+												<li>
+													<a class="dense-item" href={entryHref(entry)}>
+														<div class="dense-main">
+															<span class="dense-title">{entryTitle(entry)}</span>
+															{entry.data.description && (
+																<span class="dense-desc">{entry.data.description}</span>
+															)}
+														</div>
+														<div class="dense-meta">
+															{date && <FormattedDate date={date} />}
+															{(entry.data.tags?.length ?? 0) > 0 && (
+																<span class="dense-tag">#{entry.data.tags![0]}</span>
+															)}
+														</div>
+													</a>
+												</li>
+											);
+										})}
+									</ul>
+								)
+							}
+						</section>
+
+						<section class="panel">
+							<div class="panel-head">
+								<h2>标签</h2>
+								<a href="/tags/">全部 →</a>
+							</div>
+							{
+								tags.length === 0 ? (
+									<p class="empty-hint meta">在 frontmatter 加 tags</p>
+								) : (
+									<div class="tag-cloud">
+										{tags.map(([tag, items]) => (
+											<a class="tag" href={`/tags/${encodeURIComponent(tag)}/`}>
+												#{tag}
+												<span class="count">{items.length}</span>
+											</a>
+										))}
+									</div>
+								)
+							}
+						</section>
+
+						<section class="panel">
+							<div class="panel-head">
+								<h2>站点说明</h2>
+							</div>
+							<ul class="bullet-list">
+								<li>文章适合完整长文与教程</li>
+								<li>笔记支持 <code>[[双链]]</code></li>
+								<li>私密笔记用 <code>publish: false</code></li>
+								<li>构建产物在 <code>dist/</code></li>
+							</ul>
+							<a class="text-link" href="/notes/obsidian-与本站/">Obsidian 对接说明 →</a>
+						</section>
+					</aside>
+				</div>
+			</main>
+			<Footer />
+		</div>
+
+		<style>
+			/* ---- shell / gate 状态 ---- */
+			.home-body {
+				min-height: 100vh;
+			}
+			.home-body[data-gate='pending'],
+			.home-body[data-gate='entering'] {
+				overflow: hidden;
+			}
+			.home-shell {
+				opacity: 0;
+				visibility: hidden;
+				pointer-events: none;
+				transform: translateY(10px);
+				transition:
+					opacity 0.5s var(--ease-out),
+					transform 0.6s var(--ease-out),
+					visibility 0s linear 0.5s;
+			}
+			.home-body[data-gate='done'] .home-shell {
+				opacity: 1;
+				visibility: visible;
+				pointer-events: auto;
+				transform: none;
+				transition:
+					opacity 0.5s var(--ease-out) 0.05s,
+					transform 0.6s var(--ease-out) 0.05s,
+					visibility 0s;
+			}
+			.home-body[data-gate='skip'] .home-shell {
+				opacity: 1;
+				visibility: visible;
+				pointer-events: auto;
+				transform: none;
+				transition: none;
+			}
+
+			/* ---- Gate（保持交互进入） ---- */
+			.gate {
+				position: fixed;
+				inset: 0;
+				z-index: 100;
+				display: grid;
+				place-items: center;
+				background: rgb(var(--surface));
+				overflow: hidden;
+				isolation: isolate;
+			}
+			.home-body[data-gate='done'] .gate,
+			.home-body[data-gate='skip'] .gate {
+				pointer-events: none;
+			}
+			.gate-bg {
+				position: absolute;
+				inset: 0;
+				overflow: hidden;
+			}
+			.orb {
+				position: absolute;
+				border-radius: 50%;
+				filter: blur(40px);
+				opacity: 0.55;
+				will-change: transform;
+			}
+			.orb-a {
+				width: min(52vw, 420px);
+				height: min(52vw, 420px);
+				left: -8%;
+				top: -10%;
+				background: radial-gradient(circle, rgba(31, 107, 90, 0.45), transparent 68%);
+				animation: float-a 14s ease-in-out infinite alternate;
+			}
+			.orb-b {
+				width: min(48vw, 380px);
+				height: min(48vw, 380px);
+				right: -6%;
+				bottom: -12%;
+				background: radial-gradient(circle, rgba(31, 107, 90, 0.28), transparent 70%);
+				animation: float-b 16s ease-in-out infinite alternate;
+			}
+			.orb-c {
+				width: 220px;
+				height: 220px;
+				left: 50%;
+				top: 50%;
+				transform: translate(-50%, -50%);
+				background: radial-gradient(circle, rgba(31, 107, 90, 0.35), transparent 72%);
+				opacity: 0.7;
+			}
+			.grid-fade {
+				position: absolute;
+				inset: 0;
+				background-image:
+					linear-gradient(rgb(var(--line)) 1px, transparent 1px),
+					linear-gradient(90deg, rgb(var(--line)) 1px, transparent 1px);
+				background-size: 48px 48px;
+				mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, black, transparent);
+				opacity: 0.35;
+			}
+			@keyframes float-a {
+				to {
+					transform: translate(4%, 6%);
+				}
+			}
+			@keyframes float-b {
+				to {
+					transform: translate(-5%, -4%);
+				}
+			}
+			.gate-content {
+				position: relative;
+				z-index: 2;
+				text-align: center;
+				padding: 1.5rem;
+				max-width: 34rem;
+			}
+			.gate-kicker {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.45rem;
+				margin: 0 0 1rem;
+				color: rgb(var(--muted));
+				font-size: 0.82rem;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+				opacity: 0;
+				animation: gate-fade-up 0.6s var(--ease-out) 0.15s forwards;
+			}
+			.gate-kicker .dot {
+				width: 7px;
+				height: 7px;
+				border-radius: 50%;
+				background: var(--accent);
+				animation: pulse-dot 1.8s ease-out infinite;
+			}
+			@keyframes pulse-dot {
+				0% {
+					box-shadow: 0 0 0 0 rgba(31, 107, 90, 0.45);
+				}
+				70% {
+					box-shadow: 0 0 0 10px rgba(31, 107, 90, 0);
+				}
+				100% {
+					box-shadow: 0 0 0 0 rgba(31, 107, 90, 0);
+				}
+			}
+			.gate-title {
+				margin: 0 0 0.75rem;
+				font-size: clamp(2.4rem, 8vw, 3.6rem);
+				letter-spacing: -0.04em;
+				line-height: 1.05;
+			}
+			.gate-title :global(.char) {
+				display: inline-block;
+				opacity: 0;
+				transform: translateY(0.65em) rotateX(-40deg);
+				transform-origin: bottom center;
+				animation: char-in 0.7s var(--ease-out) forwards;
+			}
+			.gate-title :global(.char.space) {
+				width: 0.28em;
+			}
+			@keyframes char-in {
+				to {
+					opacity: 1;
+					transform: none;
+				}
+			}
+			.gate-desc {
+				margin: 0 auto 1.75rem;
+				color: rgb(var(--muted));
+				font-size: 0.98rem;
+				line-height: 1.65;
+				max-width: 28rem;
+				opacity: 0;
+				animation: gate-fade-up 0.65s var(--ease-out) 0.55s forwards;
+			}
+			.gate-enter {
+				position: relative;
+				appearance: none;
+				border: 1px solid color-mix(in srgb, var(--accent) 45%, rgb(var(--line)));
+				background: rgb(var(--surface-elevated));
+				color: var(--accent-dark);
+				border-radius: 999px;
+				padding: 0.85rem 1.6rem;
+				font: inherit;
+				font-size: 0.95rem;
+				font-weight: 600;
+				cursor: pointer;
+				box-shadow: var(--shadow);
+				opacity: 0;
+				animation: gate-fade-up 0.65s var(--ease-out) 0.75s forwards;
+				transition:
+					transform var(--dur) var(--ease-out),
+					box-shadow var(--dur) var(--ease-out),
+					background var(--dur) var(--ease-out),
+					border-color var(--dur) var(--ease-out);
+			}
+			.gate-enter:hover {
+				transform: translateY(-2px);
+				box-shadow: var(--shadow-lift);
+				border-color: var(--accent);
+			}
+			.gate-enter-label {
+				position: relative;
+				z-index: 1;
+				display: inline-flex;
+				align-items: center;
+				gap: 0.45rem;
+			}
+			.gate-enter-ring {
+				position: absolute;
+				inset: -6px;
+				border-radius: inherit;
+				border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+				animation: ring-pulse 2.2s ease-out infinite;
+				pointer-events: none;
+			}
+			@keyframes ring-pulse {
+				0% {
+					transform: scale(0.96);
+					opacity: 0.7;
+				}
+				70% {
+					transform: scale(1.08);
+					opacity: 0;
+				}
+				100% {
+					opacity: 0;
+				}
+			}
+			.gate-hint {
+				margin: 1rem 0 0;
+				color: rgb(var(--muted));
+				font-size: 0.8rem;
+				opacity: 0;
+				animation: gate-fade-up 0.6s var(--ease-out) 0.95s forwards;
+			}
+			.gate-hint kbd {
+				display: inline-block;
+				padding: 0.1em 0.4em;
+				border: 1px solid rgb(var(--line));
+				border-bottom-width: 2px;
+				border-radius: 4px;
+				background: rgb(var(--surface-elevated));
+				font-size: 0.85em;
+				font-family: inherit;
+			}
+			@keyframes gate-fade-up {
+				from {
+					opacity: 0;
+					transform: translateY(12px);
+				}
+				to {
+					opacity: 1;
+					transform: none;
+				}
+			}
+			.gate-reveal {
+				position: absolute;
+				inset: 0;
+				z-index: 5;
+				pointer-events: none;
+				background: rgb(var(--surface));
+				clip-path: circle(0% at 50% 50%);
+				opacity: 0;
+			}
+			.gate.is-exiting .gate-content {
+				opacity: 0;
+				transform: scale(0.96);
+				filter: blur(4px);
+				transition:
+					opacity 0.35s ease,
+					transform 0.45s var(--ease-out),
+					filter 0.4s ease;
+			}
+			.gate.is-exiting .gate-reveal {
+				opacity: 1;
+				animation: reveal-circle 0.85s var(--ease-out) forwards;
+			}
+			.gate.is-exiting .gate-bg {
+				opacity: 0;
+				transition: opacity 0.5s ease;
+			}
+			@keyframes reveal-circle {
+				0% {
+					clip-path: circle(0% at var(--rx, 50%) var(--ry, 50%));
+					opacity: 1;
+				}
+				100% {
+					clip-path: circle(150% at var(--rx, 50%) var(--ry, 50%));
+					opacity: 0;
+				}
+			}
+			.home-body[data-gate='done'] .gate {
+				opacity: 0;
+				visibility: hidden;
+				transition:
+					opacity 0.2s ease 0.7s,
+					visibility 0s linear 0.9s;
+			}
+
+			/* ========== 三栏内容板：用模块填满，不是拉宽留白 ========== */
+			.home-main {
+				animation: none !important;
+				width: min(1280px, calc(100vw - 1.5rem));
+				max-width: 100%;
+				margin: 0 auto;
+				padding: 1rem var(--page-pad-x) 2.5rem;
+			}
+
+			.board {
+				display: grid;
+				grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.35fr) minmax(240px, 0.95fr);
+				gap: 0.85rem;
+				align-items: start;
+			}
+
+			.rail {
+				display: flex;
+				flex-direction: column;
+				gap: 0.75rem;
+				min-width: 0;
+			}
+
+			.panel {
+				border: 1px solid rgb(var(--line));
+				border-radius: var(--radius);
+				background: rgb(var(--surface-elevated));
+				box-shadow: var(--shadow);
+				padding: 0.9rem 0.95rem;
+			}
+
+			.panel.fill {
+				/* 列表面板尽量吃满高度，减少中空 */
+				flex: 1;
+			}
+
+			.panel-head {
+				display: flex;
+				align-items: baseline;
+				justify-content: space-between;
+				gap: 0.75rem;
+				margin-bottom: 0.65rem;
+			}
+			.panel-head h2 {
+				margin: 0;
+				font-size: 0.92rem;
+				letter-spacing: 0.01em;
+			}
+			.panel-head a,
+			.text-link {
+				font-size: 0.82rem;
+				text-decoration: none;
+				color: var(--accent);
+				font-weight: 600;
+			}
+			.panel-head a:hover,
+			.text-link:hover {
+				color: var(--accent-dark);
+			}
+
+			.profile .eyebrow {
+				margin: 0 0 0.35rem;
+				color: var(--accent);
+				font-size: 0.75rem;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				font-weight: 700;
+			}
+			.site-name {
+				margin: 0 0 0.45rem;
+				font-size: 1.45rem;
+				letter-spacing: -0.03em;
+			}
+			.bio {
+				margin: 0 0 0.7rem;
+				color: rgb(var(--muted));
+				font-size: 0.9rem;
+				line-height: 1.55;
+			}
+			.author {
+				margin: 0 0 0.9rem;
+				font-size: 0.82rem;
+				line-height: 1.55;
+			}
+			.author strong {
+				color: rgb(var(--ink));
+			}
+
+			.cta-row {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.45rem;
+			}
+			.btn {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				padding: 0.42rem 0.85rem;
+				border-radius: 999px;
+				font-size: 0.84rem;
+				font-weight: 600;
+				text-decoration: none;
+				transition:
+					transform var(--dur-fast) var(--ease-out),
+					background var(--dur-fast) var(--ease-out),
+					border-color var(--dur-fast) var(--ease-out),
+					color var(--dur-fast) var(--ease-out);
+			}
+			.btn:hover {
+				transform: translateY(-1px);
+			}
+			.btn-primary {
+				background: var(--accent);
+				color: #fff;
+				border: 1px solid var(--accent);
+			}
+			.btn-primary:hover {
+				background: var(--accent-dark);
+				border-color: var(--accent-dark);
+				color: #fff;
+			}
+			.btn-ghost {
+				background: transparent;
+				color: rgb(var(--ink));
+				border: 1px solid rgb(var(--line));
+			}
+			.btn-ghost:hover {
+				border-color: var(--accent);
+				color: var(--accent-dark);
+				background: var(--accent-soft);
+			}
+
+			.quick-nav {
+				display: flex;
+				flex-direction: column;
+				gap: 0.2rem;
+			}
+			.quick-nav a {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 0.75rem;
+				padding: 0.48rem 0.55rem;
+				border-radius: 8px;
+				text-decoration: none;
+				color: rgb(var(--ink));
+				font-size: 0.9rem;
+				transition: background var(--dur-fast) var(--ease-out);
+			}
+			.quick-nav a:hover {
+				background: var(--accent-soft);
+				color: var(--accent-dark);
+			}
+			.quick-nav em {
+				font-style: normal;
+				color: rgb(var(--muted));
+				font-size: 0.8rem;
+				font-variant-numeric: tabular-nums;
+			}
+
+			.metric-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.45rem;
+			}
+			.metric {
+				padding: 0.55rem 0.6rem;
+				border-radius: 8px;
+				background: rgb(var(--code-bg));
+				border: 1px solid transparent;
+			}
+			.metric strong {
+				display: block;
+				font-size: 1.2rem;
+				line-height: 1.1;
+				color: var(--accent-dark);
+				font-variant-numeric: tabular-nums;
+			}
+			.metric span {
+				font-size: 0.75rem;
+				color: rgb(var(--muted));
+			}
+
+			.tip-list {
+				margin: 0 0 0.7rem;
+				padding-left: 1.15rem;
+				font-size: 0.86rem;
+				color: rgb(var(--muted));
+			}
+			.tip-list li {
+				margin: 0.28rem 0;
+			}
+			.tip-list code {
+				font-size: 0.8em;
+			}
+
+			/* 精选 */
+			.featured {
+				display: block;
+				padding: 1.1rem 1.15rem;
+				border-radius: var(--radius);
+				border: 1px solid color-mix(in srgb, var(--accent) 35%, rgb(var(--line)));
+				background:
+					radial-gradient(ellipse 90% 80% at 100% 0%, var(--accent-soft), transparent 55%),
+					rgb(var(--surface-elevated));
+				text-decoration: none;
+				color: inherit;
+				box-shadow: var(--shadow);
+				transition:
+					transform var(--dur) var(--ease-out),
+					border-color var(--dur) var(--ease-out),
+					box-shadow var(--dur) var(--ease-out);
+			}
+			.featured:hover {
+				transform: translateY(-2px);
+				border-color: var(--accent);
+				box-shadow: var(--shadow-lift);
+				color: inherit;
+			}
+			.featured-top {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 0.75rem;
+				margin-bottom: 0.55rem;
+			}
+			.pill {
+				display: inline-flex;
+				padding: 0.12em 0.55em;
+				border-radius: 999px;
+				background: var(--accent);
+				color: #fff;
+				font-size: 0.72rem;
+				font-weight: 700;
+				letter-spacing: 0.03em;
+			}
+			.featured h2 {
+				margin: 0 0 0.4rem;
+				font-size: 1.2rem;
+				line-height: 1.3;
+			}
+			.featured p {
+				margin: 0 0 0.7rem;
+				color: rgb(var(--muted));
+				font-size: 0.9rem;
+			}
+			.featured.empty {
+				cursor: default;
+			}
+			.featured.empty:hover {
+				transform: none;
+			}
+			.inline-tags {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.3rem;
+				margin-bottom: 0.7rem;
+			}
+			.read-more {
+				color: var(--accent);
+				font-weight: 600;
+				font-size: 0.88rem;
+			}
+
+			/* 密集列表：用行项目填高度 */
+			.dense-list {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+				display: flex;
+				flex-direction: column;
+			}
+			.dense-list > li + li {
+				border-top: 1px solid rgb(var(--line));
+			}
+			.dense-item {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) auto;
+				gap: 0.65rem 0.85rem;
+				align-items: start;
+				padding: 0.62rem 0.15rem;
+				text-decoration: none;
+				color: inherit;
+				border-radius: 6px;
+				transition: background var(--dur-fast) var(--ease-out);
+			}
+			.dense-item:hover {
+				background: var(--accent-soft);
+				color: inherit;
+			}
+			.dense-main {
+				min-width: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 0.12rem;
+			}
+			.dense-title {
+				font-size: 0.92rem;
+				font-weight: 600;
+				line-height: 1.35;
+			}
+			.dense-item:hover .dense-title {
+				color: var(--accent-dark);
+			}
+			.dense-desc {
+				font-size: 0.8rem;
+				color: rgb(var(--muted));
+				line-height: 1.4;
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+			}
+			.dense-meta {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-end;
+				gap: 0.15rem;
+				font-size: 0.75rem;
+				color: rgb(var(--muted));
+				white-space: nowrap;
+				padding-top: 0.12rem;
+			}
+			.dense-tag {
+				color: var(--accent-dark);
+				font-weight: 600;
+			}
+
+			.tag-cloud {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.4rem;
+			}
+			.tag-cloud .count {
+				margin-left: 0.25em;
+				opacity: 0.7;
+			}
+
+			.bullet-list {
+				margin: 0 0 0.7rem;
+				padding-left: 1.1rem;
+				font-size: 0.86rem;
+				color: rgb(var(--muted));
+			}
+			.bullet-list li {
+				margin: 0.3rem 0;
+			}
+			.empty-hint {
+				margin: 0.25rem 0;
+			}
+
+			.home-body[data-gate='done'] .reveal-col {
+				animation: col-in 0.55s var(--ease-out) both;
+				animation-delay: var(--d, 0s);
+			}
+			.home-body[data-gate='skip'] .reveal-col {
+				animation: none;
+			}
+			@keyframes col-in {
+				from {
+					opacity: 0;
+					transform: translateY(10px);
+				}
+				to {
+					opacity: 1;
+					transform: none;
+				}
+			}
+
+			/* 平板：左栏置顶横排，中+右 */
+			@media (max-width: 1080px) {
+				.board {
+					grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+				}
+				.rail-left {
+					grid-column: 1 / -1;
+					display: grid;
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+					gap: 0.75rem;
+				}
+				.rail-left .profile {
+					grid-column: 1 / -1;
+				}
+			}
+
+			@media (max-width: 720px) {
+				.board {
+					grid-template-columns: 1fr;
+				}
+				.rail-left {
+					grid-template-columns: 1fr;
+				}
+				.dense-item {
+					grid-template-columns: 1fr;
+					gap: 0.25rem;
+				}
+				.dense-meta {
+					flex-direction: row;
+					align-items: center;
+					gap: 0.5rem;
+				}
+			}
+
+			@media (prefers-reduced-motion: reduce) {
+				.orb-a,
+				.orb-b,
+				.gate-enter-ring,
+				.gate-kicker .dot {
+					animation: none !important;
+				}
+				.gate-title :global(.char),
+				.gate-kicker,
+				.gate-desc,
+				.gate-enter,
+				.gate-hint {
+					animation: none !important;
+					opacity: 1 !important;
+					transform: none !important;
+				}
+			}
+
+			@media (prefers-color-scheme: dark) {
+				.btn-primary,
+				.pill {
+					color: #0b1a16;
+				}
+				.btn-primary:hover {
+					color: #0b1a16;
+				}
+			}
+		</style>
+
+		<script>
+			const STORAGE_KEY = 'notebook-gate-entered';
+
+			const body = document.body;
+			const gate = document.getElementById('gate');
+			const enterBtn = document.getElementById('gate-enter');
+			const reveal = document.getElementById('gate-reveal');
+			const cursorOrb = document.querySelector('[data-cursor-orb]');
+			const title = document.querySelector('[data-split]');
+
+			const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			const forceIntro = new URLSearchParams(location.search).has('intro');
+			const already = !forceIntro && sessionStorage.getItem(STORAGE_KEY) === '1';
+
+			function splitTitle() {
+				if (!title || title.dataset.splitDone) return;
+				const text = title.textContent ?? '';
+				title.textContent = '';
+				[...text].forEach((ch, i) => {
+					const span = document.createElement('span');
+					span.className = ch === ' ' ? 'char space' : 'char';
+					span.textContent = ch === ' ' ? '\u00a0' : ch;
+					span.style.animationDelay = `${0.22 + i * 0.045}s`;
+					title.appendChild(span);
+				});
+				title.dataset.splitDone = '1';
+			}
+
+			function finishEnter() {
+				body.dataset.gate = 'done';
+				sessionStorage.setItem(STORAGE_KEY, '1');
+				window.setTimeout(() => {
+					gate?.remove();
+				}, 900);
+			}
+
+			function enter(clientX, clientY) {
+				if (body.dataset.gate !== 'pending') return;
+				body.dataset.gate = 'entering';
+
+				const x = clientX ?? window.innerWidth / 2;
+				const y = clientY ?? window.innerHeight / 2;
+				if (reveal) {
+					reveal.style.setProperty('--rx', `${(x / window.innerWidth) * 100}%`);
+					reveal.style.setProperty('--ry', `${(y / window.innerHeight) * 100}%`);
+				}
+
+				if (reduceMotion) {
+					finishEnter();
+					return;
+				}
+
+				gate?.classList.add('is-exiting');
+				window.setTimeout(finishEnter, 720);
+			}
+
+			function bindCursor() {
+				if (!cursorOrb || reduceMotion) return;
+				let mx = window.innerWidth / 2;
+				let my = window.innerHeight / 2;
+				let cx = mx;
+				let cy = my;
+				let raf = 0;
+
+				const tick = () => {
+					cx += (mx - cx) * 0.08;
+					cy += (my - cy) * 0.08;
+					cursorOrb.style.transform = `translate(${cx - 110}px, ${cy - 110}px)`;
+					raf = requestAnimationFrame(tick);
+				};
+
+				window.addEventListener(
+					'pointermove',
+					(e) => {
+						mx = e.clientX;
+						my = e.clientY;
+					},
+					{ passive: true },
+				);
+				raf = requestAnimationFrame(tick);
+				document.addEventListener('notebook:entered', () => cancelAnimationFrame(raf), {
+					once: true,
+				});
+			}
+
+			function init() {
+				if (already || reduceMotion) {
+					body.dataset.gate = 'skip';
+					gate?.remove();
+					return;
+				}
+
+				splitTitle();
+				bindCursor();
+				enterBtn?.focus({ preventScroll: true });
+
+				const onEnter = (e) => {
+					enter(e.clientX, e.clientY);
+					document.dispatchEvent(new Event('notebook:entered'));
+				};
+
+				enterBtn?.addEventListener('click', onEnter);
+				gate?.addEventListener('click', (e) => {
+					const t = e.target;
+					if (t === gate || (t instanceof Element && t.classList.contains('gate-bg'))) {
+						onEnter(e);
+					}
+				});
+
+				window.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+						e.preventDefault();
+						enter();
+						document.dispatchEvent(new Event('notebook:entered'));
+					}
+				});
+			}
+
+			init();
+		</script>
+	</body>
+</html>

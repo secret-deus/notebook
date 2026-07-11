@@ -1,0 +1,102 @@
+---
+import { SITE_TITLE } from '../consts';
+import HeaderLink from './HeaderLink.astro';
+---
+
+<header>
+	<nav>
+		<a class="brand" href="/">{SITE_TITLE}</a>
+		<div class="links">
+			<HeaderLink href="/">首页</HeaderLink>
+			<HeaderLink href="/posts/">文章</HeaderLink>
+			<HeaderLink href="/notes/">笔记</HeaderLink>
+			<HeaderLink href="/tags/">标签</HeaderLink>
+			<HeaderLink href="/about/">关于</HeaderLink>
+		</div>
+	</nav>
+</header>
+
+<style>
+	header {
+		position: sticky;
+		top: 0;
+		z-index: 20;
+		backdrop-filter: blur(10px);
+		background: rgba(var(--surface), 0.86);
+		border-bottom: 1px solid rgb(var(--line));
+		transition: box-shadow var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+	}
+	nav {
+		width: var(--wide);
+		max-width: 100%;
+		margin: 0 auto;
+		padding: 0 var(--page-pad-x);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		min-height: 3.1rem;
+	}
+	.brand {
+		font-weight: 700;
+		font-size: 0.98em;
+		color: rgb(var(--ink));
+		text-decoration: none;
+		letter-spacing: -0.02em;
+		transition:
+			color var(--dur-fast) var(--ease-out),
+			transform var(--dur-fast) var(--ease-out);
+	}
+	.brand:hover {
+		color: var(--accent);
+		transform: translateY(-1px);
+	}
+	.links {
+		display: flex;
+		align-items: center;
+		gap: 0.1rem;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+	}
+	.links :global(a) {
+		position: relative;
+		padding: 0.4rem 0.55rem;
+		color: rgb(var(--muted));
+		text-decoration: none;
+		border-radius: 6px;
+		font-size: 0.9em;
+		transition:
+			color var(--dur-fast) var(--ease-out),
+			background var(--dur-fast) var(--ease-out),
+			transform var(--dur-fast) var(--ease-out);
+	}
+	.links :global(a::after) {
+		content: '';
+		position: absolute;
+		left: 0.55rem;
+		right: 0.55rem;
+		bottom: 0.2rem;
+		height: 1.5px;
+		border-radius: 1px;
+		background: var(--accent);
+		transform: scaleX(0);
+		transform-origin: left center;
+		transition: transform var(--dur) var(--ease-out);
+		opacity: 0.85;
+	}
+	.links :global(a:hover) {
+		color: rgb(var(--ink));
+		background: rgb(var(--code-bg));
+		transform: translateY(-1px);
+	}
+	.links :global(a:hover::after),
+	.links :global(a.active::after) {
+		transform: scaleX(1);
+	}
+	.links :global(a.active) {
+		color: var(--accent-dark);
+		font-weight: 700;
+		background: var(--accent-soft);
+	}
+</style>
+

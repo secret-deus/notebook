@@ -1,0 +1,123 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DenseEntryList from '../../components/DenseEntryList.astro';
+import SiteAside from '../../components/SiteAside.astro';
+import { SITE_TITLE } from '../../consts';
+import { getPublishedNotes, getPublishedPosts, getTagMap } from '../../lib/content';
+
+const tagMap = await getTagMap();
+const tags = [...tagMap.entries()].sort((a, b) => {
+	const byCount = b[1].length - a[1].length;
+	return byCount !== 0 ? byCount : a[0].localeCompare(b[0], 'zh-CN');
+});
+const posts = await getPublishedPosts();
+const notes = await getPublishedNotes();
+const recent = [...posts, ...notes].slice(0, 8);
+---
+
+<BaseLayout title={`标签 · ${SITE_TITLE}`} description="按标签浏览" wide>
+	<div class="page-board">
+		<div class="board-main">
+			<section class="panel page-title-block">
+				<h1>标签</h1>
+				<p class="lede">
+					从 frontmatter 的 <code>tags</code> 汇总。共 <strong>{tags.length}</strong> 个标签。
+				</p>
+			</section>
+
+			<section class="panel">
+				<div class="panel-head">
+					<h2>全部标签</h2>
+					<span class="meta">{tags.length} 个</span>
+				</div>
+				{
+					tags.length === 0 ? (
+						<p class="empty-hint">
+							还没有标签。在 frontmatter 里写 <code>tags: [笔记]</code> 即可。
+						</p>
+					) : (
+						<ul class="tag-table">
+							{tags.map(([tag, items]) => (
+								<li>
+									<a class="tag-row-item" href={`/tags/${encodeURIComponent(tag)}/`}>
+										<span class="tag-name">#{tag}</span>
+										<span class="tag-count">{items.length} 篇</span>
+										<span class="tag-preview meta">
+											{items
+												.slice(0, 3)
+												.map((e) => e.data.title || e.id)
+												.join(' · ')}
+										</span>
+									</a>
+								</li>
+							))}
+						</ul>
+					)
+				}
+			</section>
+		</div>
+
+		<SiteAside
+			active="tags"
+			listTitle="最近内容"
+			listHref="/"
+			listEntries={recent}
+			showKind={true}
+			tipsTitle="怎么打标签"
+			tips={[
+				'YAML：<code>tags: [技术, 笔记]</code>',
+				'同标签文章与笔记会归在一起',
+				'标签页可做主题合集入口',
+			]}
+		/>
+	</div>
+</BaseLayout>
+
+<style>
+	.tag-table {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+	.tag-table > li + li {
+		border-top: 1px solid rgb(var(--line));
+	}
+	.tag-row-item {
+		display: grid;
+		grid-template-columns: minmax(5rem, 8rem) 3.5rem minmax(0, 1fr);
+		gap: 0.65rem;
+		align-items: baseline;
+		padding: 0.62rem 0.15rem;
+		text-decoration: none;
+		color: inherit;
+		border-radius: 6px;
+	}
+	.tag-row-item:hover {
+		background: var(--accent-soft);
+		color: inherit;
+	}
+	.tag-name {
+		font-weight: 700;
+		color: var(--accent-dark);
+	}
+	.tag-count {
+		font-size: 0.8rem;
+		color: rgb(var(--muted));
+		font-variant-numeric: tabular-nums;
+	}
+	.tag-preview {
+		font-size: 0.8rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	@media (max-width: 720px) {
+		.tag-row-item {
+			grid-template-columns: 1fr auto;
+		}
+		.tag-preview {
+			grid-column: 1 / -1;
+			white-space: normal;
+		}
+	}
+</style>

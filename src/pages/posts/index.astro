@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DenseEntryList from '../../components/DenseEntryList.astro';
+import SiteAside from '../../components/SiteAside.astro';
+import { SITE_TITLE } from '../../consts';
+import { getPublishedNotes, getPublishedPosts } from '../../lib/content';
+
+const posts = await getPublishedPosts();
+const notes = await getPublishedNotes();
+---
+
+<BaseLayout title={`文章 · ${SITE_TITLE}`} description="按时间排序的博文列表" wide>
+	<div class="page-board">
+		<div class="board-main">
+			<section class="panel page-title-block">
+				<h1>文章</h1>
+				<p class="lede">
+					正式长文与教程，按发布日期排序。共 <strong>{posts.length}</strong> 篇。
+				</p>
+			</section>
+
+			<section class="panel">
+				<div class="panel-head">
+					<h2>全部文章</h2>
+					<span class="meta">{posts.length} 篇</span>
+				</div>
+				<DenseEntryList
+					entries={posts}
+					empty="还没有文章。在 src/content/posts/ 新建 Markdown 即可。"
+					showKind={false}
+				/>
+			</section>
+		</div>
+
+		<SiteAside
+			active="posts"
+			listTitle="最近笔记"
+			listHref="/notes/"
+			listEntries={notes}
+			listEmpty="暂无笔记"
+			showKind={false}
+			tipsTitle="写作提示"
+			tips={[
+				'文章适合完整叙述、教程与周记',
+				'frontmatter 需要 <code>title</code> 与 <code>pubDate</code>',
+				'草稿用 <code>draft: true</code> 隐藏',
+			]}
+		/>
+	</div>
+</BaseLayout>

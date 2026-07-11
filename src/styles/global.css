@@ -1,0 +1,483 @@
+/*
+  笔记博客视觉：纸感底、单一强调色、偏阅读密度
+*/
+
+:root {
+	--accent: #1f6b5a;
+	--accent-soft: rgba(31, 107, 90, 0.12);
+	--accent-dark: #0f3d34;
+	--ink: 28, 30, 32;
+	--muted: 96, 102, 110;
+	--line: 222, 224, 228;
+	--surface: 252, 251, 248;
+	--surface-elevated: 255, 255, 255;
+	--code-bg: 242, 241, 237;
+	--shadow: 0 1px 2px rgba(var(--ink), 0.04), 0 8px 24px rgba(var(--ink), 0.05);
+	--shadow-lift: 0 4px 12px rgba(var(--ink), 0.07), 0 14px 32px rgba(var(--ink), 0.08);
+	--radius: 10px;
+	/* 阅读正文略宽一点；列表/首页用更宽壳，减少大屏两侧空旷 */
+	--content: 46rem;
+	--wide: min(72rem, calc(100vw - 3rem));
+	--page-pad-x: clamp(1rem, 3vw, 2rem);
+
+	/* 动效节奏：短、稳、不抢戏 */
+	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+	--dur-fast: 150ms;
+	--dur: 220ms;
+	--dur-slow: 420ms;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--accent: #5dbea8;
+		--accent-soft: rgba(93, 190, 168, 0.14);
+		--accent-dark: #9ad9c9;
+		--ink: 236, 236, 232;
+		--muted: 160, 164, 170;
+		--line: 52, 56, 62;
+		--surface: 18, 20, 22;
+		--surface-elevated: 26, 28, 31;
+		--code-bg: 34, 37, 42;
+		--shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+		--shadow-lift: 0 6px 18px rgba(0, 0, 0, 0.35), 0 16px 36px rgba(0, 0, 0, 0.28);
+	}
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	font-family:
+		var(--font-atkinson),
+		'Segoe UI',
+		'PingFang SC',
+		'Hiragino Sans GB',
+		'Microsoft YaHei',
+		sans-serif;
+	margin: 0;
+	padding: 0;
+	background: rgb(var(--surface));
+	color: rgb(var(--ink));
+	font-size: 15px;
+	line-height: 1.7;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+main {
+	width: var(--content);
+	max-width: 100%;
+	margin: 0 auto;
+	padding: 2rem var(--page-pad-x) 3.5rem;
+	/* 页面进入 */
+	animation: page-in var(--dur-slow) var(--ease-out) both;
+}
+
+main.wide {
+	width: var(--wide);
+	max-width: 100%;
+}
+
+@keyframes page-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes soft-scale {
+	from {
+		opacity: 0;
+		transform: scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	margin: 0 0 0.55em;
+	line-height: 1.28;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	text-wrap: balance;
+	color: rgb(var(--ink));
+}
+
+h1 {
+	font-size: clamp(1.45rem, 3.2vw, 1.85rem);
+}
+h2 {
+	font-size: 1.28rem;
+	margin-top: 1.75em;
+}
+h3 {
+	font-size: 1.08rem;
+	margin-top: 1.4em;
+}
+
+p {
+	margin: 0 0 0.95em;
+}
+
+a {
+	color: var(--accent);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.18em;
+	transition:
+		color var(--dur-fast) var(--ease-out),
+		text-underline-offset var(--dur-fast) var(--ease-out),
+		opacity var(--dur-fast) var(--ease-out);
+}
+
+a:hover {
+	color: var(--accent-dark);
+	text-underline-offset: 0.28em;
+}
+
+strong,
+b {
+	font-weight: 700;
+}
+
+ul,
+ol {
+	padding-left: 1.3em;
+	margin: 0 0 0.95em;
+}
+
+li {
+	margin: 0.2em 0;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+	border-radius: var(--radius);
+	transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+
+.prose img:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-lift);
+}
+
+hr {
+	border: none;
+	border-top: 1px solid rgb(var(--line));
+	margin: 1.75rem 0;
+}
+
+code {
+	font-family: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, monospace;
+	font-size: 0.88em;
+	padding: 0.1em 0.35em;
+	background: rgb(var(--code-bg));
+	border-radius: 4px;
+}
+
+pre {
+	padding: 0.95rem 1.05rem;
+	border-radius: var(--radius);
+	overflow-x: auto;
+	background: rgb(var(--code-bg));
+	border: 1px solid rgb(var(--line));
+	margin: 0 0 1.2em;
+	font-size: 0.84em;
+	line-height: 1.55;
+	transition: border-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+
+pre:hover {
+	border-color: color-mix(in srgb, var(--accent) 35%, rgb(var(--line)));
+	box-shadow: var(--shadow);
+}
+
+pre > code {
+	all: unset;
+	font-family: inherit;
+}
+
+blockquote {
+	margin: 0 0 1.2em;
+	padding: 0.15em 0 0.15em 0.9em;
+	border-left: 3px solid var(--accent);
+	color: rgb(var(--muted));
+	transition: background var(--dur) var(--ease-out);
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0 0 1.2em;
+	font-size: 0.92em;
+}
+
+th,
+td {
+	border: 1px solid rgb(var(--line));
+	padding: 0.45em 0.65em;
+	text-align: left;
+}
+
+th {
+	background: rgb(var(--code-bg));
+}
+
+/* Obsidian callout 粗支持：> [!note] */
+blockquote:has(> p:first-child) {
+	background: var(--accent-soft);
+	border-radius: 0 var(--radius) var(--radius) 0;
+	padding: 0.75em 0.9em;
+}
+
+.prose :where(h2, h3, h4) {
+	scroll-margin-top: 5rem;
+}
+
+/* 正文链接：底线生长感 */
+.prose a {
+	background-image: linear-gradient(currentColor, currentColor);
+	background-position: 0 100%;
+	background-repeat: no-repeat;
+	background-size: 0% 1px;
+	text-decoration: none;
+	transition:
+		background-size var(--dur) var(--ease-out),
+		color var(--dur-fast) var(--ease-out);
+}
+
+.prose a:hover {
+	background-size: 100% 1px;
+}
+
+.tag {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.1em 0.5em;
+	border-radius: 999px;
+	background: var(--accent-soft);
+	color: var(--accent-dark);
+	font-size: 0.8em;
+	text-decoration: none;
+	line-height: 1.45;
+	transition:
+		background var(--dur-fast) var(--ease-out),
+		transform var(--dur-fast) var(--ease-out),
+		box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.tag:hover {
+	background: rgba(31, 107, 90, 0.22);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 8px rgba(31, 107, 90, 0.12);
+	color: var(--accent-dark);
+}
+
+.meta {
+	color: rgb(var(--muted));
+	font-size: 0.88em;
+}
+
+.card-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 0.75rem;
+}
+
+.card-list > li {
+	animation: fade-up var(--dur-slow) var(--ease-out) both;
+}
+
+/* 列表错峰入场，最多 8 项 */
+.card-list > li:nth-child(1) {
+	animation-delay: 40ms;
+}
+.card-list > li:nth-child(2) {
+	animation-delay: 80ms;
+}
+.card-list > li:nth-child(3) {
+	animation-delay: 120ms;
+}
+.card-list > li:nth-child(4) {
+	animation-delay: 160ms;
+}
+.card-list > li:nth-child(5) {
+	animation-delay: 200ms;
+}
+.card-list > li:nth-child(6) {
+	animation-delay: 240ms;
+}
+.card-list > li:nth-child(7) {
+	animation-delay: 280ms;
+}
+.card-list > li:nth-child(8) {
+	animation-delay: 320ms;
+}
+.card-list > li:nth-child(n + 9) {
+	animation-delay: 360ms;
+}
+
+.card {
+	display: block;
+	padding: 0.95rem 1.05rem;
+	border: 1px solid rgb(var(--line));
+	border-radius: var(--radius);
+	background: rgb(var(--surface-elevated));
+	text-decoration: none;
+	color: inherit;
+	box-shadow: var(--shadow);
+	transition:
+		border-color var(--dur) var(--ease-out),
+		transform var(--dur) var(--ease-out),
+		box-shadow var(--dur) var(--ease-out),
+		background var(--dur) var(--ease-out);
+}
+
+.card:hover {
+	border-color: color-mix(in srgb, var(--accent) 55%, rgb(var(--line)));
+	transform: translateY(-3px);
+	box-shadow: var(--shadow-lift);
+	color: inherit;
+	background: color-mix(in srgb, rgb(var(--surface-elevated)) 92%, var(--accent-soft));
+}
+
+.card:active {
+	transform: translateY(-1px);
+	transition-duration: var(--dur-fast);
+}
+
+.card h3 {
+	margin: 0 0 0.3em;
+	font-size: 1rem;
+	transition: color var(--dur-fast) var(--ease-out);
+}
+
+.card:hover h3 {
+	color: var(--accent-dark);
+}
+
+.card p {
+	margin: 0;
+	color: rgb(var(--muted));
+	font-size: 0.9em;
+}
+
+.tag-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	margin-top: 0.6rem;
+}
+
+.section-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+	margin: 2.1rem 0 0.85rem;
+}
+
+.section-head h2 {
+	margin: 0;
+	font-size: 1.1rem;
+}
+
+.section-head a {
+	font-size: 0.88em;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.15em;
+	transition: transform var(--dur) var(--ease-out), gap var(--dur) var(--ease-out);
+}
+
+.section-head a:hover {
+	transform: translateX(3px);
+	gap: 0.35em;
+}
+
+.hero {
+	padding: 0.35rem 0 0.15rem;
+	animation: fade-up var(--dur-slow) var(--ease-out) both;
+}
+
+.hero p {
+	color: rgb(var(--muted));
+	font-size: 0.98em;
+	max-width: 34rem;
+}
+
+/* 文章页标题区 */
+.article {
+	animation: soft-scale var(--dur-slow) var(--ease-out) both;
+}
+
+.sr-only {
+	border: 0;
+	padding: 0;
+	margin: 0;
+	position: absolute !important;
+	height: 1px;
+	width: 1px;
+	overflow: hidden;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+	body {
+		font-size: 14.5px;
+	}
+	main {
+		padding: 1.35rem 0 2.75rem;
+	}
+}
+
+/* 减少动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}

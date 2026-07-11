@@ -1,0 +1,50 @@
+---
+import type { NoteEntry, PostEntry } from '../lib/content';
+import { entryHref, entryTitle } from '../lib/content';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	entry: PostEntry | NoteEntry;
+}
+
+const { entry } = Astro.props;
+const title = entryTitle(entry);
+const href = entryHref(entry);
+const description =
+	entry.data.description ||
+	(entry.collection === 'notes' ? '常青笔记' : '');
+const date =
+	entry.collection === 'posts'
+		? entry.data.pubDate
+		: (entry.data.updatedDate ?? entry.data.pubDate);
+const kind = entry.collection === 'posts' ? '文章' : '笔记';
+const tags = entry.data.tags ?? [];
+---
+
+<a class="card" href={href}>
+	<div class="top meta">
+		<span>{kind}</span>
+		{date && <FormattedDate date={date} />}
+	</div>
+	<h3>{title}</h3>
+	{description && <p>{description}</p>}
+	{
+		tags.length > 0 && (
+			<div class="tag-row">
+				{tags.slice(0, 4).map((tag) => (
+					<span class="tag">#{tag}</span>
+				))}
+			</div>
+		)
+	}
+</a>
+
+<style>
+	.top {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 0.45rem;
+		font-size: 0.85em;
+	}
+</style>
