@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 520" width="100%" role="img">
+  <title>Multi-Head Attention 数据流</title>
+  <desc>输入通过 QKV 投影→拆分为多头→各头独立计算 Attention→合并→输出投影</desc>
+  <style>
+    .th { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500; fill: #26215C; }
+    .ts { font-family: -apple-system, sans-serif; font-size: 11px; fill: #5F5E5A; }
+    .tm { font-family: -apple-system, monospace; font-size: 10px; fill: #26215C; }
+    .tc { font-family: -apple-system, sans-serif; font-size: 9px; fill: #888780; }
+    .tw { font-family: -apple-system, sans-serif; font-size: 10px; fill: #ffffff; }
+    .tb { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 500; fill: #26215C; }
+  </style>
+
+  <!-- Input -->
+  <rect x="240" y="16" width="200" height="32" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+  <text class="tm" x="340" y="36" text-anchor="middle">输入 X: (S, 4096)</text>
+
+  <!-- Three projections -->
+  <line x1="240" y1="48" x2="160" y2="74" stroke="#534AB7" stroke-width="1"/>
+  <line x1="340" y1="48" x2="340" y2="74" stroke="#534AB7" stroke-width="1"/>
+  <line x1="440" y1="48" x2="520" y2="74" stroke="#534AB7" stroke-width="1"/>
+
+  <rect x="100" y="74" width="120" height="32" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="tm" x="160" y="94" text-anchor="middle">Q = X × W_Q</text>
+
+  <rect x="280" y="74" width="120" height="32" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text class="tm" x="340" y="94" text-anchor="middle">K = X × W_K</text>
+
+  <rect x="460" y="74" width="120" height="32" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text class="tm" x="520" y="94" text-anchor="middle">V = X × W_V</text>
+
+  <!-- Split into heads -->
+  <text class="tc" x="160" y="120" text-anchor="middle">↓ reshape ↓</text>
+  <text class="tc" x="340" y="120" text-anchor="middle">↓ reshape ↓</text>
+  <text class="tc" x="520" y="120" text-anchor="middle">↓ reshape ↓</text>
+  <text class="tc" x="340" y="134" text-anchor="middle">(S, 4096) → (S, 32, 128) → (32, S, 128)</text>
+
+  <!-- Heads row -->
+  <text class="tb" x="50" y="160" text-anchor="middle">32 个 Head 独立计算</text>
+
+  <rect x="30" y="170" width="140" height="90" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.3"/>
+  <text class="tb" x="100" y="190" text-anchor="middle">Head 1 (dim=128)</text>
+  <text class="tc" x="100" y="210" text-anchor="middle">Scores = Q₁K₁^T / √128</text>
+  <text class="tc" x="100" y="226" text-anchor="middle">+ Causal Mask</text>
+  <text class="tc" x="100" y="242" text-anchor="middle">→ Softmax → × V₁</text>
+  <text class="tc" x="100" y="258" text-anchor="middle">→ (S, 128)</text>
+
+  <text class="tc" x="190" y="220" text-anchor="middle">...</text>
+
+  <rect x="220" y="170" width="140" height="90" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.3"/>
+  <text class="tb" x="290" y="190" text-anchor="middle">Head 16 (dim=128)</text>
+  <text class="tc" x="290" y="210" text-anchor="middle">Scores = Q₁₆K₁₆^T / √128</text>
+  <text class="tc" x="290" y="226" text-anchor="middle">+ Causal Mask</text>
+  <text class="tc" x="290" y="242" text-anchor="middle">→ Softmax → × V₁₆</text>
+  <text class="tc" x="290" y="258" text-anchor="middle">→ (S, 128)</text>
+
+  <text class="tc" x="380" y="220" text-anchor="middle">...</text>
+
+  <rect x="410" y="170" width="140" height="90" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.3"/>
+  <text class="tb" x="480" y="190" text-anchor="middle">Head 32 (dim=128)</text>
+  <text class="tc" x="480" y="210" text-anchor="middle">Scores = Q₃₂K₃₂^T / √128</text>
+  <text class="tc" x="480" y="226" text-anchor="middle">+ Causal Mask</text>
+  <text class="tc" x="480" y="242" text-anchor="middle">→ Softmax → × V₃₂</text>
+  <text class="tc" x="480" y="258" text-anchor="middle">→ (S, 128)</text>
+
+  <!-- Merge -->
+  <line x1="100" y1="260" x2="100" y2="290" stroke="#888780" stroke-width="0.5"/>
+  <line x1="290" y1="260" x2="290" y2="290" stroke="#888780" stroke-width="0.5"/>
+  <line x1="480" y1="260" x2="480" y2="290" stroke="#888780" stroke-width="0.5"/>
+
+  <text class="tb" x="340" y="288" text-anchor="middle">↓ Concatenate ↓</text>
+
+  <rect x="180" y="298" width="320" height="28" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+  <text class="tm" x="340" y="316" text-anchor="middle">32 × (S,128) → 拼成 (S, 4096)</text>
+
+  <line x1="340" y1="326" x2="340" y2="348" stroke="#888780" stroke-width="0.5"/>
+
+  <!-- Output projection -->
+  <rect x="200" y="350" width="280" height="32" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="tm" x="340" y="370" text-anchor="middle">输出投影: (S, 4096) × W_O → (S, 4096)</text>
+
+  <line x1="340" y1="382" x2="340" y2="404" stroke="#534AB7" stroke-width="1"/>
+
+  <rect x="230" y="406" width="220" height="36" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/>
+  <text class="tm" x="340" y="432" text-anchor="middle">Attention 输出 (S, 4096)</text>
+
+  <!-- Bottom: comparison -->
+  <rect x="60" y="460" width="560" height="48" rx="8" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.3"/>
+  <text class="tb" x="340" y="478" text-anchor="middle">为什么多头：32 个头各看各的 → 一个头看语法，一个看语义，一个看位置...</text>
+  <text class="tc" x="340" y="498" text-anchor="middle">最后拼起来再过一个线性层 → 融合所有头的信息 → 完整的理解</text>
+</svg>

@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 820" width="100%" role="img">
+  <title>Decoder-Only Transformer 架构</title>
+  <desc>LLaMA/GPT 类模型的一层完整架构：输入→Embedding→N层(Attention+FFN)→输出</desc>
+  <style>
+    .th { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500; fill: #26215C; }
+    .ts { font-family: -apple-system, sans-serif; font-size: 11px; fill: #5F5E5A; }
+    .tm { font-family: -apple-system, monospace; font-size: 10px; fill: #26215C; }
+    .tc { font-family: -apple-system, sans-serif; font-size: 9px; fill: #888780; }
+    .tw { font-family: -apple-system, sans-serif; font-size: 10px; fill: #ffffff; }
+    .tb { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 500; fill: #26215C; }
+  </style>
+
+  <!-- Input -->
+  <rect x="260" y="20" width="160" height="32" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+  <text class="tm" x="340" y="40" text-anchor="middle">"今天天气真好"</text>
+
+  <line x1="340" y1="52" x2="340" y2="70" stroke="#534AB7" stroke-width="1"/>
+
+  <!-- Tokenizer -->
+  <rect x="240" y="70" width="200" height="28" rx="6" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text class="tm" x="340" y="88" text-anchor="middle">Tokenizer: [今,天,天,气,真,好]</text>
+
+  <line x1="340" y1="98" x2="340" y2="116" stroke="#185FA5" stroke-width="1"/>
+
+  <!-- Embedding -->
+  <rect x="230" y="116" width="220" height="32" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text class="tm" x="340" y="136" text-anchor="middle">Embedding: (6, 4096) 矩阵</text>
+
+  <line x1="340" y1="148" x2="340" y2="168" stroke="#854F0B" stroke-width="1"/>
+
+  <!-- Layer Box -->
+  <rect x="60" y="168" width="560" height="380" rx="14" fill="transparent" stroke="#D3D1C7" stroke-width="0.5"/>
+  <text class="tb" x="340" y="192" text-anchor="middle">Transformer Layer × N（LLaMA-7B: 32 层, 70B: 80 层）</text>
+
+  <!-- Pre-Norm Attention -->
+  <rect x="100" y="210" width="150" height="24" rx="4" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.3"/>
+  <text class="tc" x="175" y="226" text-anchor="middle">RMSNorm</text>
+
+  <line x1="175" y1="234" x2="175" y2="250" stroke="#888780" stroke-width="0.5"/>
+
+  <rect x="100" y="250" width="150" height="36" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text class="tm" x="175" y="266" text-anchor="middle">Multi-Head</text>
+  <text class="tm" x="175" y="280" text-anchor="middle">Attention</text>
+
+  <line x1="175" y1="286" x2="175" y2="316" stroke="#185FA5" stroke-width="1"/>
+
+  <!-- Residual 1 -->
+  <circle cx="175" cy="326" r="10" fill="#639922"/>
+  <text class="tw" x="175" y="330" text-anchor="middle" font-size="9">+</text>
+
+  <line x1="185" y1="326" x2="200" y2="326" stroke="#639922" stroke-width="1"/>
+
+  <!-- Residual line 1 -->
+  <line x1="80" y1="198" x2="80" y2="326" stroke="#639922" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="80" y1="326" x2="165" y2="326" stroke="#639922" stroke-width="1" stroke-dasharray="3,2"/>
+  <text class="tc" x="42" y="270" text-anchor="middle">残差 1</text>
+
+  <!-- Pre-Norm FFN -->
+  <rect x="220" y="304" width="150" height="24" rx="4" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.3"/>
+  <text class="tc" x="295" y="320" text-anchor="middle">RMSNorm</text>
+
+  <line x1="295" y1="328" x2="295" y2="344" stroke="#888780" stroke-width="0.5"/>
+
+  <rect x="220" y="344" width="150" height="36" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text class="tm" x="295" y="360" text-anchor="middle">FFN (SwiGLU)</text>
+  <text class="tm" x="295" y="374" text-anchor="middle">4096→11008→4096</text>
+
+  <line x1="295" y1="380" x2="295" y2="410" stroke="#854F0B" stroke-width="1"/>
+
+  <!-- Residual 2 -->
+  <circle cx="295" cy="420" r="10" fill="#076E56"/>
+  <text class="tw" x="295" y="424" text-anchor="middle" font-size="9">+</text>
+
+  <line x1="175" y1="316" x2="285" y2="420" stroke="#0F6E56" stroke-width="1" stroke-dasharray="3,2"/>
+  <text class="tc" x="235" y="380" text-anchor="middle">残差 2</text>
+
+  <line x1="305" y1="420" x2="320" y2="420" stroke="#0F6E56" stroke-width="1"/>
+
+  <!-- Right side detail -->
+  <rect x="380" y="210" width="220" height="220" rx="8" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.3"/>
+
+  <text class="tb" x="490" y="230" text-anchor="middle">Attention 细节</text>
+  <text class="tc" x="400" y="248">输入 (6, 4096)</text>
+  <text class="tc" x="400" y="264">↓ 投影</text>
+  <text class="tc" x="400" y="280">Q(6,4096) K(6,4096) V(6,4096)</text>
+  <text class="tc" x="400" y="296">↓ RoPE + 拆 32 头</text>
+  <text class="tc" x="400" y="312">Q(32,6,128) K(32,6,128) V(32,6,128)</text>
+  <text class="tc" x="400" y="328">↓ Scores=QK^T/√128</text>
+  <text class="tc" x="400" y="344">Scores(32,6,6) + Causal Mask</text>
+  <text class="tc" x="400" y="360">↓ Softmax</text>
+  <text class="tc" x="400" y="376">Weights(32,6,6) × V</text>
+  <text class="tc" x="400" y="392">↓ 合并 32 头</text>
+  <text class="tc" x="400" y="408">输出 (6, 4096)</text>
+
+  <rect x="380" y="440" width="220" height="90" rx="8" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.3"/>
+  <text class="tb" x="490" y="458" text-anchor="middle">参数分布（每层 LLaMA-7B）</text>
+  <text class="tc" x="400" y="478">QKV 投影: 3×(4096→4096) = 50M</text>
+  <text class="tc" x="400" y="494">Output 投影: (4096→4096) = 17M</text>
+  <text class="tc" x="400" y="510">FFN up+gate: 2×(4096→11008) = 90M</text>
+  <text class="tc" x="400" y="526">FFN down: (11008→4096) = 45M</text>
+
+  <!-- Output after layers -->
+  <line x1="295" y1="430" x2="295" y2="470" stroke="#0F6E56" stroke-width="1"/>
+  <line x1="295" y1="470" x2="340" y2="470" stroke="#0F6E56" stroke-width="1"/>
+  <line x1="340" y1="470" x2="340" y2="500" stroke="#0F6E56" stroke-width="1"/>
+
+  <text class="tc" x="340" y="558" text-anchor="middle">↑ 上面这一层重复 32 次（LLaMA-7B）↑</text>
+
+  <line x1="340" y1="568" x2="340" y2="586" stroke="#0F6E56" stroke-width="1"/>
+
+  <!-- Post-Layer Norm -->
+  <rect x="240" y="586" width="200" height="28" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+  <text class="tc" x="340" y="604" text-anchor="middle">RMSNorm (最后一层后)</text>
+
+  <line x1="340" y1="614" x2="340" y2="632" stroke="#888780" stroke-width="1"/>
+
+  <!-- LM Head -->
+  <rect x="220" y="632" width="240" height="36" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="tm" x="340" y="652" text-anchor="middle">LM Head (4096 → 32000)</text>
+  <text class="tc" x="340" y="666" text-anchor="middle">每个 token 预测下一个 token 的概率分布</text>
+
+  <line x1="340" y1="668" x2="340" y2="686" stroke="#534AB7" stroke-width="1"/>
+
+  <!-- Output -->
+  <rect x="180" y="686" width="320" height="44" rx="6" fill="#26215C"/>
+  <text class="tw" x="340" y="714" text-anchor="middle">输出: [天,天,气,真,好] 的下一个预测 → "！"</text>
+
+  <!-- Bottom note -->
+  <text class="tc" x="340" y="760" text-anchor="middle">Decoder-Only：每个 token 只能看到它前面的 token（Causal Mask）</text>
+  <text class="tc" x="340" y="778" text-anchor="middle">自回归生成：输出"！"后拼回序列 → Forward("今天天气真好！") → 预测下一个...</text>
+</svg>

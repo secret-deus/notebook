@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 440" width="100%" role="img">
+  <title>MoE 路由机制</title>
+  <desc>混合专家模型中 Router 如何为每个 Token 选择专家，以及共享专家和路由专家的分工</desc>
+  <style>
+    .th { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500; fill: #26215C; }
+    .ts { font-family: -apple-system, sans-serif; font-size: 11px; fill: #5F5E5A; }
+    .tm { font-family: -apple-system, monospace; font-size: 10px; fill: #26215C; }
+    .tc { font-family: -apple-system, sans-serif; font-size: 9px; fill: #888780; }
+    .tw { font-family: -apple-system, sans-serif; font-size: 10px; fill: #ffffff; }
+    .tb { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 500; fill: #26215C; }
+  </style>
+
+  <!-- Input -->
+  <rect x="220" y="16" width="240" height="36" rx="6" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+  <text class="tb" x="340" y="32" text-anchor="middle">输入：一批 Token（Attention 输出）</text>
+  <text class="tc" x="340" y="48" text-anchor="middle">形状: (S, 4096)</text>
+
+  <!-- Always-active shared expert -->
+  <line x1="220" y1="52" x2="160" y2="90" stroke="#534AB7" stroke-width="1"/>
+
+  <rect x="60" y="90" width="200" height="60" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text class="tb" x="160" y="112" text-anchor="middle">共享专家(Shared Expert)</text>
+  <text class="tc" x="160" y="128" text-anchor="middle">总是激活，捕获通用知识</text>
+  <text class="tc" x="160" y="144" text-anchor="middle">所有 Token 都经过它</text>
+
+  <!-- Router -->
+  <line x1="340" y1="52" x2="340" y2="78" stroke="#534AB7" stroke-width="1"/>
+
+  <rect x="230" y="80" width="220" height="40" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text class="tb" x="340" y="96" text-anchor="middle">Router (门控网络)</text>
+  <text class="tc" x="340" y="112" text-anchor="middle">Softmax(Linear(token)) → 选 Top-6 Expert</text>
+
+  <!-- Experts grid -->
+  <line x1="340" y1="120" x2="100" y2="180" stroke="#854F0B" stroke-width="0.5"/>
+  <line x1="340" y1="120" x2="190" y2="180" stroke="#854F0B" stroke-width="0.5"/>
+  <line x1="340" y1="120" x2="280" y2="180" stroke="#854F0B" stroke-width="0.5"/>
+  <line x1="340" y1="120" x2="370" y2="180" stroke="#854F0B" stroke-width="0.5"/>
+  <line x1="340" y1="120" x2="460" y2="180" stroke="#854F0B" stroke-width="0.5"/>
+  <line x1="340" y1="120" x2="550" y2="180" stroke="#854F0B" stroke-width="0.5"/>
+
+  <!-- Expert boxes row 1 -->
+  <rect x="30" y="180" width="130" height="44" rx="6" fill="#FCEBEB" stroke="#F09595" stroke-width="0.5"/>
+  <text class="tb" x="95" y="198" text-anchor="middle">Expert 0 (激活)</text>
+  <text class="tc" x="95" y="216" text-anchor="middle">数学推理</text>
+
+  <rect x="170" y="180" width="130" height="44" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+  <text class="tb" x="235" y="198" text-anchor="middle">Expert 1 (空闲)</text>
+  <text class="tc" x="235" y="216" text-anchor="middle">法律知识</text>
+
+  <rect x="310" y="180" width="130" height="44" rx="6" fill="#FCEBEB" stroke="#F09595" stroke-width="0.5"/>
+  <text class="tb" x="375" y="198" text-anchor="middle">Expert 2 (激活)</text>
+  <text class="tc" x="375" y="216" text-anchor="middle">代码生成</text>
+
+  <text class="tc" x="455" y="206" text-anchor="middle">...</text>
+
+  <rect x="490" y="180" width="130" height="44" rx="6" fill="#FCEBEB" stroke="#F09595" stroke-width="0.5"/>
+  <text class="tb" x="555" y="198" text-anchor="middle">Expert 383 (激活)</text>
+  <text class="tc" x="555" y="216" text-anchor="middle">通用知识</text>
+
+  <!-- Combine -->
+  <line x1="95" y1="224" x2="95" y2="270" stroke="#E24B4A" stroke-width="0.5"/>
+  <line x1="375" y1="224" x2="375" y2="270" stroke="#E24B4A" stroke-width="0.5"/>
+  <line x1="555" y1="224" x2="555" y2="270" stroke="#E24B4A" stroke-width="0.5"/>
+  <line x1="160" y1="150" x2="160" y2="270" stroke="#0F6E56" stroke-width="0.5"/>
+
+  <!-- Merge -->
+  <rect x="180" y="270" width="320" height="32" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+  <text class="tm" x="340" y="290" text-anchor="middle">加权合并：Σ(gate_i × Expert_i) + Shared_Expert</text>
+
+  <line x1="340" y1="302" x2="340" y2="328" stroke="#888780" stroke-width="1"/>
+
+  <rect x="200" y="330" width="280" height="32" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="tm" x="340" y="350" text-anchor="middle">输出: (S, 4096) — 和普通 FFN 输出形状相同</text>
+
+  <!-- Stats -->
+  <rect x="60" y="380" width="560" height="48" rx="8" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.3"/>
+  <text class="tb" x="340" y="400" text-anchor="middle">DeepSeek-V4: 384 专家, 每 Token 激活 6 个 + 1 共享 = 总参数 1.6T, 激活参数 49B</text>
+  <text class="tc" x="340" y="420" text-anchor="middle">类比：拥有 384 本专业书的图书馆，每次只翻 6 本就能答出问题</text>
+</svg>

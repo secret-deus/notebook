@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 880" width="100%" role="img">
+  <title>残差连接原理详解</title>
+  <desc>残差连接如何解决梯度消失问题，以及 Pre-Norm 与 Post-Norm 的区别</desc>
+  <style>
+    .th { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500; fill: #26215C; }
+    .ts { font-family: -apple-system, sans-serif; font-size: 11px; fill: #5F5E5A; }
+    .tn { font-family: -apple-system, sans-serif; font-size: 10px; fill: #5F5E5A; }
+    .tm { font-family: -apple-system, monospace; font-size: 10px; fill: #26215C; }
+    .tb { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 500; fill: #26215C; }
+    .tc { font-family: -apple-system, sans-serif; font-size: 9px; fill: #888780; }
+    .tw { font-family: -apple-system, sans-serif; font-size: 10px; fill: #ffffff; }
+    .tr { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 500; fill: #A32D2D; }
+    .tg { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 500; fill: #0F6E56; }
+    .edge { fill: none; stroke: #B4B2A9; stroke-width: 0.8; }
+  </style>
+
+  <text class="th" x="340" y="24" text-anchor="middle">问题：没有残差连接会怎样？</text>
+
+  <rect x="40" y="38" width="600" height="200" rx="10" fill="#FCEBEB" stroke="#F09595" stroke-width="0.5"/>
+  <text class="tr" x="55" y="60">没有残差连接：output = Layer(input)，梯度逐层衰减</text>
+
+  <rect x="60" y="80" width="120" height="36" rx="6" fill="#E24B4A"/>
+  <text class="tw" x="120" y="102" text-anchor="middle">Layer 1</text>
+
+  <line x1="180" y1="98" x2="220" y2="98" stroke="#E24B4A" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <text class="tc" x="200" y="88" text-anchor="middle">x₁</text>
+
+  <rect x="220" y="80" width="120" height="36" rx="6" fill="#E24B4A"/>
+  <text class="tw" x="280" y="102" text-anchor="middle">Layer 2</text>
+
+  <line x1="340" y1="98" x2="380" y2="98" stroke="#E24B4A" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <text class="tc" x="360" y="88" text-anchor="middle">x₂</text>
+
+  <rect x="380" y="80" width="120" height="36" rx="6" fill="#E24B4A"/>
+  <text class="tw" x="440" y="102" text-anchor="middle">Layer 3</text>
+
+  <line x1="500" y1="98" x2="540" y2="98" stroke="#E24B4A" stroke-width="1.5" marker-end="url(#arrow-red)"/>
+  <text class="tc" x="520" y="88" text-anchor="middle">x₃</text>
+
+  <rect x="540" y="80" width="80" height="36" rx="6" fill="#A32D2D" stroke="#791F1F" stroke-width="0.5"/>
+  <text class="tw" x="580" y="102" text-anchor="middle">Loss</text>
+
+  <text class="ts" x="340" y="140" text-anchor="middle">反向传播时梯度怎么走：</text>
+
+  <text class="tm" x="120" y="162" text-anchor="middle">dL/dx₁</text>
+  <text class="tc" x="120" y="178" text-anchor="middle">= dL/dx₃ * dx₃/dx₂ * dx₂/dx₁</text>
+  <text class="tr" x="120" y="196" text-anchor="middle">三层链式乘法 → 梯度越来越小 → 梯度消失！</text>
+
+  <text class="tn" x="340" y="218" text-anchor="middle">Layer 1 几乎收不到有效梯度 → 模型前几层永远学不到东西</text>
+
+  <defs>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#E24B4A" stroke-width="1.5" stroke-linecap="round"/>
+    </marker>
+  </defs>
+
+  <text class="th" x="340" y="258" text-anchor="middle">方案：加一条"短路"，让输入直接绕过 Layer 传到输出</text>
+
+  <rect x="40" y="274" width="600" height="215" rx="10" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+  <text class="tg" x="55" y="296">有残差连接：output = Layer(input) + input，梯度走两条路</text>
+
+  <rect x="60" y="312" width="120" height="36" rx="6" fill="#3B6D11"/>
+  <text class="tw" x="120" y="334" text-anchor="middle">Layer 1</text>
+
+  <line x1="60" y1="312" x2="170" y2="360" stroke="#639922" stroke-width="1.5"/>
+  <circle cx="180" cy="360" r="10" fill="#639922"/>
+  <text class="tw" x="180" y="364" text-anchor="middle" font-size="9">+</text>
+
+  <line x1="190" y1="360" x2="220" y2="330" stroke="#3B6D11" stroke-width="1.5"/>
+
+  <rect x="220" y="312" width="120" height="36" rx="6" fill="#3B6D11"/>
+  <text class="tw" x="280" y="334" text-anchor="middle">Layer 2</text>
+
+  <line x1="220" y1="312" x2="330" y2="360" stroke="#639922" stroke-width="1.5"/>
+  <circle cx="340" cy="360" r="10" fill="#639922"/>
+  <text class="tw" x="340" y="364" text-anchor="middle" font-size="9">+</text>
+
+  <line x1="350" y1="360" x2="380" y2="330" stroke="#3B6D11" stroke-width="1.5"/>
+
+  <rect x="380" y="312" width="120" height="36" rx="6" fill="#3B6D11"/>
+  <text class="tw" x="440" y="334" text-anchor="middle">Layer 3</text>
+
+  <line x1="380" y1="312" x2="490" y2="360" stroke="#639922" stroke-width="1.5"/>
+  <circle cx="500" cy="360" r="10" fill="#639922"/>
+  <text class="tw" x="500" y="364" text-anchor="middle" font-size="9">+</text>
+
+  <line x1="510" y1="360" x2="540" y2="330" stroke="#3B6D11" stroke-width="1.5"/>
+
+  <rect x="540" y="312" width="80" height="36" rx="6" fill="#27500A" stroke="#173404" stroke-width="0.5"/>
+  <text class="tw" x="580" y="334" text-anchor="middle">Loss</text>
+
+  <text class="ts" x="340" y="390" text-anchor="middle">反向传播时梯度怎么走：</text>
+
+  <text class="tm" x="150" y="412" text-anchor="middle">路径 1（通过 Layer 1）：</text>
+  <text class="tc" x="150" y="428" text-anchor="middle">dL/dx₀ = dL/dx₃ * dx₃/dx₂ * dx₂/dx₁ * dx₁/dx₀</text>
+  <text class="tc" x="150" y="442" text-anchor="middle">← 还是三层连乘，可能消失</text>
+
+  <text class="tm" x="480" y="412" text-anchor="middle">路径 2（通过残差短路）：</text>
+  <text class="tc" x="480" y="428" text-anchor="middle">d(x₁ + x₀)/dx₀ = 1 ← 导数是常数！</text>
+  <text class="tg" x="480" y="445" text-anchor="middle">不管层多深，梯度至少能原封不动传回来！</text>
+
+  <text class="tb" x="340" y="472" text-anchor="middle">残差连接 = 给梯度开了一条"高速公路"，跳过中间的乘法</text>
+
+  <text class="th" x="340" y="510" text-anchor="middle">用数字感受一下</text>
+
+  <rect x="40" y="524" width="290" height="100" rx="8" fill="#FCEBEB" stroke="#F09595" stroke-width="0.5"/>
+  <text class="tr" x="185" y="544" text-anchor="middle">没有残差连接</text>
+  <text class="tm" x="185" y="564" text-anchor="middle">每层梯度缩放 0.5x</text>
+  <text class="tm" x="185" y="584" text-anchor="middle">1.0 → 0.5 → 0.25 → 0.125 → 0.06 → 0.03</text>
+  <text class="tr" x="185" y="604" text-anchor="middle">→ 5 层后梯度只剩 3%，前几层训不动</text>
+  <text class="tc" x="185" y="618">这就是 100 层网络训不了的原因</text>
+
+  <rect x="350" y="524" width="290" height="100" rx="8" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+  <text class="tg" x="495" y="544" text-anchor="middle">有残差连接</text>
+  <text class="tm" x="495" y="564" text-anchor="middle">每层梯度 = 走 Layer(0.5x) + 走残差(1.0x) = 1.5x</text>
+  <text class="tm" x="495" y="584" text-anchor="middle">1.0 → 1.5 → 2.25 → 3.38 → 5.06 → 7.59</text>
+  <text class="tg" x="495" y="604" text-anchor="middle">→ 梯度不但没消失，还在累积！浅层学得动</text>
+  <text class="tc" x="495" y="618">LLaMA-70B 的 80 层就是这样堆出来的</text>
+
+  <text class="th" x="340" y="660" text-anchor="middle">LLaMA 一层里的两个残差连接（Pre-Norm）</text>
+
+  <rect x="40" y="678" width="600" height="155" rx="8" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+
+  <rect x="70" y="698" width="80" height="28" rx="5" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="tm" x="110" y="716" text-anchor="middle">输入 x</text>
+
+  <line x1="150" y1="712" x2="178" y2="712" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow-purple)"/>
+
+  <rect x="180" y="690" width="100" height="18" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.3"/>
+  <text class="tc" x="230" y="703" text-anchor="middle">RMSNorm</text>
+  <rect x="180" y="712" width="100" height="28" rx="5" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text class="tm" x="230" y="730" text-anchor="middle">Attention</text>
+
+  <line x1="280" y1="726" x2="308" y2="726" stroke="#185FA5" stroke-width="1" marker-end="url(#arrow-blue)"/>
+
+  <circle cx="320" cy="726" r="10" fill="#639922"/>
+  <text class="tw" x="320" y="730" text-anchor="middle" font-size="9">+</text>
+
+  <line x1="70" y1="698" x2="310" y2="716" stroke="#639922" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text class="tc" x="200" y="772">残差 1：x 直接跳过 Attention，加到 Attention 的输出上</text>
+
+  <line x1="330" y1="726" x2="360" y2="726" stroke="#639922" stroke-width="1" marker-end="url(#arrow-green)"/>
+
+  <rect x="362" y="690" width="100" height="18" rx="4" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.3"/>
+  <text class="tc" x="412" y="703" text-anchor="middle">RMSNorm</text>
+  <rect x="362" y="712" width="100" height="28" rx="5" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text class="tm" x="412" y="730" text-anchor="middle">FFN (SwiGLU)</text>
+
+  <line x1="462" y1="726" x2="490" y2="726" stroke="#854F0B" stroke-width="1" marker-end="url(#arrow-amber)"/>
+
+  <circle cx="502" cy="726" r="10" fill="#076E56"/>
+  <text class="tw" x="502" y="730" text-anchor="middle" font-size="9">+</text>
+
+  <line x1="310" y1="736" x2="492" y2="726" stroke="#0F6E56" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text class="tc" x="480" y="772">残差 2：Attention 的输出跳过 FFN，加到 FFN 的输出上</text>
+
+  <line x1="512" y1="726" x2="540" y2="726" stroke="#0F6E56" stroke-width="1"/>
+
+  <rect x="542" y="712" width="80" height="28" rx="5" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="tm" x="582" y="730" text-anchor="middle">输出 h'</text>
+
+  <defs>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#534AB7" stroke-width="1.2" stroke-linecap="round"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#185FA5" stroke-width="1.2" stroke-linecap="round"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#639922" stroke-width="1.2" stroke-linecap="round"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#854F0B" stroke-width="1.2" stroke-linecap="round"/>
+    </marker>
+  </defs>
+
+  <rect x="80" y="800" width="520" height="44" rx="10" fill="#26215C"/>
+  <text class="tw" x="340" y="820" text-anchor="middle">残差连接的本质：y = F(x) + x — 最差情况 F(x)=0，输出还是 x，不会退化</text>
+  <text class="tw" x="340" y="836" text-anchor="middle">有了它，100 层甚至 1000 层的网络都能训练</text>
+</svg>

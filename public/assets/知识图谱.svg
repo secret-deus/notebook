@@ -1,0 +1,166 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 880" width="100%" role="img">
+  <title>GPU 集群运维知识图谱</title>
+  <desc>22个文件、9个模块的完整双向互联知识结构</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke"
+        stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <style>
+    .t { font-family: -apple-system, sans-serif; font-size: 14px; fill: #26215C; }
+    .th { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500; fill: #26215C; }
+    .ts { font-family: -apple-system, sans-serif; font-size: 11px; fill: #5F5E5A; }
+    .tc { font-family: -apple-system, sans-serif; font-size: 10px; fill: #888780; }
+    .tw { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500; fill: #ffffff; }
+    .tws { font-family: -apple-system, sans-serif; font-size: 11px; fill: rgba(255,255,255,0.9); }
+    .edge { fill: none; stroke: #B4B2A9; stroke-width: 0.8; }
+  </style>
+
+  <rect x="140" y="24" width="400" height="44" rx="22"
+    fill="#26215C" stroke="none"/>
+  <text class="tw" x="340" y="50" text-anchor="middle" dominant-baseline="central">GPU 集群运维知识总览</text>
+
+  <line x1="200" y1="68" x2="130" y2="120" class="edge" marker-end="url(#arr)"/>
+  <line x1="275" y1="68" x2="220" y2="120" class="edge" marker-end="url(#arr)"/>
+  <line x1="340" y1="68" x2="340" y2="120" class="edge" marker-end="url(#arr)"/>
+  <line x1="405" y1="68" x2="460" y2="120" class="edge" marker-end="url(#arr)"/>
+  <line x1="480" y1="68" x2="560" y2="120" class="edge" marker-end="url(#arr)"/>
+
+  <rect x="46" y="120" width="170" height="160" rx="12" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+  <rect x="46" y="120" width="170" height="32" rx="12" fill="#534AB7"/>
+  <rect x="46" y="140" width="170" height="12" fill="#534AB7"/>
+  <text class="tw" x="131" y="140" text-anchor="middle" dominant-baseline="central">硬件基础</text>
+  <text class="tc" x="55" y="168" dominant-baseline="central">3 篇笔记</text>
+  <text class="ts" x="55" y="188" dominant-baseline="central">NVIDIA GPU 架构演进</text>
+  <text class="ts" x="55" y="208" dominant-baseline="central">GPU 服务器硬件选型指南</text>
+  <text class="ts" x="55" y="228" dominant-baseline="central">NVLink 与 NVSwitch 拓扑详解</text>
+  <text class="tc" x="55" y="258" dominant-baseline="central">硬件 → 调度 → 网络</text>
+
+  <rect x="250" y="120" width="180" height="160" rx="12" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <rect x="250" y="120" width="180" height="32" rx="12" fill="#185FA5"/>
+  <rect x="250" y="140" width="180" height="12" fill="#185FA5"/>
+  <text class="tw" x="340" y="140" text-anchor="middle" dominant-baseline="central">集群调度</text>
+  <text class="tc" x="259" y="168" dominant-baseline="central">4 篇笔记</text>
+  <text class="ts" x="259" y="188" dominant-baseline="central">K8s GPU 调度机制详解</text>
+  <text class="ts" x="259" y="208" dominant-baseline="central">Device Plugin 与 DRA 对比</text>
+  <text class="ts" x="259" y="228" dominant-baseline="central">GPU 资源分配与隔离策略</text>
+  <text class="ts" x="259" y="248" dominant-baseline="central">Volcano 调度器实战</text>
+
+  <rect x="464" y="120" width="180" height="160" rx="12" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+  <rect x="464" y="120" width="180" height="32" rx="12" fill="#0F6E56"/>
+  <rect x="464" y="140" width="180" height="12" fill="#0F6E56"/>
+  <text class="tw" x="554" y="140" text-anchor="middle" dominant-baseline="central">网络互联</text>
+  <text class="tc" x="473" y="168" dominant-baseline="central">3 篇笔记</text>
+  <text class="ts" x="473" y="188" dominant-baseline="central">RDMA 与 InfiniBand 详解</text>
+  <text class="ts" x="473" y="208" dominant-baseline="central">NCCL 通信原理与调优</text>
+  <text class="ts" x="473" y="228" dominant-baseline="central">GPU 集群网络拓扑设计</text>
+  <text class="tc" x="473" y="258" dominant-baseline="central">调度 → 存储 → 排障</text>
+
+  <line x1="216" y1="200" x2="250" y2="200" class="edge" marker-end="url(#arr)"/>
+  <line x1="430" y1="200" x2="464" y2="200" class="edge" marker-end="url(#arr)"/>
+
+  <rect x="46" y="320" width="170" height="160" rx="12" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+  <rect x="46" y="320" width="170" height="32" rx="12" fill="#3B6D11"/>
+  <rect x="46" y="340" width="170" height="12" fill="#3B6D11"/>
+  <text class="tw" x="131" y="340" text-anchor="middle" dominant-baseline="central">存储体系</text>
+  <text class="tc" x="55" y="368" dominant-baseline="central">2 篇笔记</text>
+  <text class="ts" x="55" y="388" dominant-baseline="central">分布式文件系统选型</text>
+  <text class="ts" x="55" y="408" dominant-baseline="central">训练数据流水线设计</text>
+  <text class="tc" x="55" y="458" dominant-baseline="central">网络 → 性能</text>
+
+  <rect x="250" y="320" width="180" height="160" rx="12" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <rect x="250" y="320" width="180" height="32" rx="12" fill="#854F0B"/>
+  <rect x="250" y="340" width="180" height="12" fill="#854F0B"/>
+  <text class="tw" x="340" y="340" text-anchor="middle" dominant-baseline="central">监控可观测</text>
+  <text class="tc" x="259" y="368" dominant-baseline="central">2 篇笔记</text>
+  <text class="ts" x="259" y="388" dominant-baseline="central">DCGM 监控体系详解</text>
+  <text class="ts" x="259" y="408" dominant-baseline="central">GPU 集群可观测性方案</text>
+  <text class="tc" x="259" y="458" dominant-baseline="central">排障 → 性能</text>
+
+  <rect x="464" y="320" width="180" height="160" rx="12" fill="#FCEBEB" stroke="#F09595" stroke-width="0.5"/>
+  <rect x="464" y="320" width="180" height="32" rx="12" fill="#A32D2D"/>
+  <rect x="464" y="340" width="180" height="12" fill="#A32D2D"/>
+  <text class="tw" x="554" y="340" text-anchor="middle" dominant-baseline="central">故障排查</text>
+  <text class="tc" x="473" y="368" dominant-baseline="central">2 篇笔记</text>
+  <text class="ts" x="473" y="388" dominant-baseline="central">GPU Xid 错误排查手册</text>
+  <text class="ts" x="473" y="408" dominant-baseline="central">NCCL 通信故障诊断指南</text>
+  <text class="tc" x="473" y="458" dominant-baseline="central">监控 → 硬件 → 自动化</text>
+
+  <line x1="216" y1="400" x2="250" y2="400" class="edge" marker-end="url(#arr)"/>
+  <line x1="430" y1="400" x2="464" y2="400" class="edge" marker-end="url(#arr)"/>
+
+  <line x1="131" y1="280" x2="131" y2="320" class="edge" marker-end="url(#arr)"/>
+  <line x1="340" y1="280" x2="340" y2="320" class="edge" marker-end="url(#arr)"/>
+  <line x1="554" y1="280" x2="554" y2="320" class="edge" marker-end="url(#arr)"/>
+
+  <rect x="46" y="520" width="170" height="160" rx="12" fill="#FBEAF0" stroke="#ED93B1" stroke-width="0.5"/>
+  <rect x="46" y="520" width="170" height="32" rx="12" fill="#993556"/>
+  <rect x="46" y="540" width="170" height="12" fill="#993556"/>
+  <text class="tw" x="131" y="540" text-anchor="middle" dominant-baseline="central">训练与推理</text>
+  <text class="tc" x="55" y="568" dominant-baseline="central">2 篇笔记</text>
+  <text class="ts" x="55" y="588" dominant-baseline="central">分布式训练框架对比</text>
+  <text class="ts" x="55" y="608" dominant-baseline="central">PyTorch 分布式训练实战</text>
+  <text class="tc" x="55" y="658" dominant-baseline="central">网络 → 性能 → 硬件</text>
+
+  <rect x="250" y="520" width="180" height="160" rx="12" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <rect x="250" y="520" width="180" height="32" rx="12" fill="#993C1D"/>
+  <rect x="250" y="540" width="180" height="12" fill="#993C1D"/>
+  <text class="tw" x="340" y="540" text-anchor="middle" dominant-baseline="central">性能优化</text>
+  <text class="tc" x="259" y="568" dominant-baseline="central">1 篇笔记</text>
+  <text class="ts" x="259" y="588" dominant-baseline="central">GPU 集群性能调优指南</text>
+  <text class="tc" x="259" y="658" dominant-baseline="central">硬件 → 存储 → 自动化</text>
+
+  <rect x="464" y="520" width="180" height="160" rx="12" fill="#F1EFE8" stroke="#888780" stroke-width="0.5"/>
+  <rect x="464" y="520" width="180" height="32" rx="12" fill="#444441"/>
+  <rect x="464" y="540" width="180" height="12" fill="#444441"/>
+  <text class="tw" x="554" y="540" text-anchor="middle" dominant-baseline="central">运维自动化</text>
+  <text class="tc" x="473" y="568" dominant-baseline="central">2 篇笔记</text>
+  <text class="ts" x="473" y="588" dominant-baseline="central">GPU 驱动与固件管理</text>
+  <text class="ts" x="473" y="608" dominant-baseline="central">集群自动化部署方案</text>
+  <text class="tc" x="473" y="658" dominant-baseline="central">调度 → 排障 → 硬件</text>
+
+  <line x1="216" y1="600" x2="250" y2="600" class="edge" marker-end="url(#arr)"/>
+  <line x1="430" y1="600" x2="464" y2="600" class="edge" marker-end="url(#arr)"/>
+
+  <line x1="131" y1="480" x2="131" y2="520" class="edge" marker-end="url(#arr)"/>
+  <line x1="340" y1="480" x2="340" y2="520" class="edge" marker-end="url(#arr)"/>
+  <line x1="554" y1="480" x2="554" y2="520" class="edge" marker-end="url(#arr)"/>
+
+  <rect x="140" y="730" width="400" height="64" rx="12" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+  
+  <text class="th" x="230" y="756" text-anchor="middle">22</text>
+  <text class="ts" x="230" y="776" text-anchor="middle">知识节点</text>
+
+  <line x1="280" y1="740" x2="280" y2="790" stroke="#D3D1C7" stroke-width="0.5"/>
+
+  <text class="th" x="340" y="756" text-anchor="middle">9</text>
+  <text class="ts" x="340" y="776" text-anchor="middle">模块</text>
+
+  <line x1="400" y1="740" x2="400" y2="790" stroke="#D3D1C7" stroke-width="0.5"/>
+
+  <text class="th" x="450" y="756" text-anchor="middle">10,306</text>
+  <text class="ts" x="450" y="776" text-anchor="middle">总行数</text>
+
+  <rect x="140" y="808" width="400" height="56" rx="8" fill="transparent" stroke="#D3D1C7" stroke-width="0.3"/>
+  
+  <circle cx="170" cy="836" r="5" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="tc" x="182" y="840" dominant-baseline="central">硬件基础 (3)</text>
+
+  <circle cx="280" cy="836" r="5" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text class="tc" x="292" y="840" dominant-baseline="central">集群调度 (4)</text>
+
+  <circle cx="390" cy="836" r="5" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text class="tc" x="402" y="840" dominant-baseline="central">网络互联 (3)</text>
+
+  <circle cx="170" cy="856" r="5" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/>
+  <text class="tc" x="182" y="860" dominant-baseline="central">存储体系 (2)</text>
+
+  <circle cx="280" cy="856" r="5" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text class="tc" x="292" y="860" dominant-baseline="central">监控可观测 (2)</text>
+
+  <circle cx="390" cy="856" r="5" fill="#FCEBEB" stroke="#A32D2D" stroke-width="0.5"/>
+  <text class="tc" x="402" y="860" dominant-baseline="central">故障排查 (2)</text>
+</svg>

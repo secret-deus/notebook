@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 830" width="100%" role="img">
+  <title>注意力矩阵完整推导</title>
+  <desc>三步：Q×K^T 得出原始分数 → 除以 √d 缩放 → Softmax 归一化为概率</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke"
+        stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <style>
+    .th { font-family: -apple-system, sans-serif; font-size: 13px; font-weight: 500; fill: #26215C; }
+    .ts { font-family: -apple-system, sans-serif; font-size: 11px; fill: #5F5E5A; }
+    .tn { font-family: -apple-system, sans-serif; font-size: 10px; fill: #5F5E5A; }
+    .tm { font-family: -apple-system, monospace; font-size: 10px; fill: #26215C; }
+    .tb { font-family: -apple-system, sans-serif; font-size: 10px; font-weight: 500; fill: #26215C; }
+    .tp { font-family: -apple-system, monospace; font-size: 9px; fill: #534AB7; }
+    .tc { font-family: -apple-system, sans-serif; font-size: 9px; fill: #888780; }
+    .tw { font-family: -apple-system, sans-serif; font-size: 10px; fill: #ffffff; }
+    .edge { fill: none; stroke: #B4B2A9; stroke-width: 0.8; }
+  </style>
+
+  <text class="th" x="340" y="24" text-anchor="middle">第 1 步：Q 和 K 是从哪来的</text>
+
+  <rect x="40" y="38" width="600" height="60" rx="8" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+  <text class="ts" x="340" y="58" text-anchor="middle">输入：4 个 token 的 Embedding，每个 4096 维（简化为 4 维示意）</text>
+
+  <rect x="80" y="70" width="100" height="20" rx="4" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+  <text class="tm" x="130" y="84" text-anchor="middle">[我]</text>
+  <rect x="195" y="70" width="100" height="20" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text class="tm" x="245" y="84" text-anchor="middle">[爱]</text>
+  <rect x="310" y="70" width="100" height="20" rx="4" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text class="tm" x="360" y="84" text-anchor="middle">[吃]</text>
+  <rect x="425" y="70" width="100" height="20" rx="4" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+  <text class="tm" x="475" y="84" text-anchor="middle">[苹果]</text>
+
+  <line x1="160" y1="98" x2="130" y2="124" class="edge" marker-end="url(#arr)"/>
+  <line x1="520" y1="98" x2="490" y2="124" class="edge" marker-end="url(#arr)"/>
+
+  <rect x="80" y="124" width="240" height="32" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="tm" x="200" y="144" text-anchor="middle">X × W_Q → Q (每个 token 的"提问"能力)</text>
+
+  <rect x="360" y="124" width="240" height="32" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text class="tm" x="480" y="144" text-anchor="middle">X × W_K → K (每个 token 的"标签"能力)</text>
+
+  <rect x="40" y="170" width="280" height="130" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text class="tb" x="180" y="188" text-anchor="middle">Q 矩阵 (4 token × 4 dim)</text>
+  <line x1="60" y1="195" x2="300" y2="195" stroke="#534AB7" stroke-width="0.3"/>
+  <text class="tp" x="100" y="210" text-anchor="middle">[0.5, 0.3, -0.2, 0.8]  ← "我"的 Q</text>
+  <text class="tp" x="100" y="228" text-anchor="middle">[0.1, -0.4, 0.7, 0.2]  ← "爱"的 Q</text>
+  <text class="tp" x="100" y="246" text-anchor="middle">[-0.3, 0.6, 0.1, -0.5] ← "吃"的 Q</text>
+  <text class="tp" x="100" y="264" text-anchor="middle">[0.7, -0.1, -0.3, 0.4]  ← "苹果"的 Q</text>
+
+  <rect x="360" y="170" width="280" height="130" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text class="tb" x="500" y="188" text-anchor="middle">K 矩阵 (4 token × 4 dim)</text>
+  <line x1="380" y1="195" x2="620" y2="195" stroke="#185FA5" stroke-width="0.3"/>
+  <text class="tp" x="420" y="210" text-anchor="middle">[ 0.3, -0.5,  0.2,  0.1]  ← "我"的 K</text>
+  <text class="tp" x="420" y="228" text-anchor="middle">[-0.2,  0.6,  0.2, -0.3]  ← "爱"的 K</text>
+  <text class="tp" x="420" y="246" text-anchor="middle">[ 0.4, -0.1, -0.4,  0.5]  ← "吃"的 K</text>
+  <text class="tp" x="420" y="264" text-anchor="middle">[ 0.1,  0.3,  0.6, -0.2]  ← "苹果"的 K</text>
+
+  <text class="th" x="340" y="325" text-anchor="middle" font-size="15" fill="#534AB7">↓ Q × K^T ↓</text>
+
+  <text class="th" x="340" y="356" text-anchor="middle">第 2 步：Q × K^T = 原始注意力分数</text>
+
+  <rect x="60" y="372" width="560" height="120" rx="8" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+
+  <text class="ts" x="90" y="396">核心操作：Scores[i][j] = Q 的第 i 行 · K 的第 j 行（两个 4 维向量的点积）</text>
+
+  <rect x="90" y="408" width="500" height="75" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.3"/>
+  <text class="tb" x="340" y="426" text-anchor="middle">以 Scores[1][2] 为例：「爱」的 Q · 「吃」的 K</text>
+  <text class="tp" x="340" y="444" text-anchor="middle">(0.1)×(0.4) + (-0.4)×(-0.1) + (0.7)×(-0.4) + (0.2)×(0.5)</text>
+  <text class="tp" x="340" y="462" text-anchor="middle">= 0.04 + 0.04 + (-0.28) + 0.10 = -0.10</text>
+  <text class="tc" x="340" y="477" text-anchor="middle">「爱」和「吃」的注意力分数是 -0.10，说明关系不太密切</text>
+
+  <text class="th" x="340" y="518" text-anchor="middle" font-size="15" fill="#534AB7">↓ 算出 4×4 矩阵后 ↓</text>
+
+  <text class="th" x="340" y="548" text-anchor="middle">第 3 步：缩放 + Causal Mask + Softmax = 注意力权重</text>
+
+  <rect x="40" y="564" width="200" height="150" rx="6" fill="#F1EFE8" stroke="#D3D1C7" stroke-width="0.5"/>
+  <text class="tb" x="140" y="582" text-anchor="middle">原始 Scores (Q×K^T)</text>
+  <line x1="50" y1="590" x2="230" y2="590" stroke="#D3D1C7" stroke-width="0.3"/>
+  <text class="tp" x="140" y="608" text-anchor="middle">[ 0.35 -0.18 -0.25  0.15]  "我"</text>
+  <text class="tp" x="140" y="624" text-anchor="middle">[ 0.12  0.42 -0.10  0.08]  "爱"</text>
+  <text class="tp" x="140" y="640" text-anchor="middle">[-0.20  0.33  0.55  0.41]  "吃"</text>
+  <text class="tp" x="140" y="656" text-anchor="middle">[ 0.28 -0.15  0.38  0.62]  "苹果"</text>
+  <text class="tc" x="140" y="676">每行 = 这个 token 看所有 token</text>
+  <text class="tc" x="140" y="690">值越大 = 越关注</text>
+
+  <text class="tn" x="255" y="640" text-anchor="middle" font-size="16" fill="#888780">→</text>
+  <text class="tc" x="255" y="654" text-anchor="middle">÷√d</text>
+
+  <rect x="270" y="564" width="200" height="150" rx="6" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text class="tb" x="370" y="582" text-anchor="middle">除以 √4 = 2</text>
+  <line x1="280" y1="590" x2="460" y2="590" stroke="#EF9F27" stroke-width="0.3"/>
+  <text class="tp" x="370" y="608" text-anchor="middle">[ 0.18 -0.09 -0.13  0.08]</text>
+  <text class="tp" x="370" y="624" text-anchor="middle">[ 0.06  0.21 -0.05  0.04]</text>
+  <text class="tp" x="370" y="640" text-anchor="middle">[-0.10  0.17  0.28  0.21]</text>
+  <text class="tp" x="370" y="656" text-anchor="middle">[ 0.14 -0.08  0.19  0.31]</text>
+  <text class="tc" x="370" y="676">除以 √d 防止分数太大</text>
+  <text class="tc" x="370" y="690">→ Softmax 后梯度更稳定</text>
+
+  <text class="tn" x="485" y="640" text-anchor="middle" font-size="16" fill="#888780">→</text>
+  <text class="tc" x="485" y="654" text-anchor="middle">Softmax</text>
+
+  <rect x="500" y="564" width="150" height="150" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/>
+  <text class="tb" x="575" y="582" text-anchor="middle">注意力权重</text>
+  <line x1="510" y1="590" x2="640" y2="590" stroke="#3B6D11" stroke-width="0.3"/>
+  <text class="tp" x="575" y="608" text-anchor="middle">[0.28 0.19 0.18 0.35]</text>
+  <text class="tp" x="575" y="624" text-anchor="middle">[0.22 0.31 0.24 0.23]</text>
+  <text class="tp" x="575" y="640" text-anchor="middle">[0.15 0.19 0.35 0.31]</text>
+  <text class="tp" x="575" y="656" text-anchor="middle">[0.21 0.16 0.25 0.38]</text>
+  <text class="tc" x="575" y="676">每行加起来 = 1</text>
+  <text class="tc" x="575" y="690">→ 概率分布！</text>
+
+  <rect x="140" y="740" width="400" height="44" rx="10" fill="#26215C"/>
+  <text class="tw" x="340" y="766" text-anchor="middle" font-size="12">最后一步：注意力权重 × V → 加权求和 → 每个 token 的输出</text>
+
+  <text class="tc" x="340" y="808" text-anchor="middle">这个 4×4 的注意力矩阵 = O(n²) 显存的来源 —— 序列每长一倍，这个矩阵大四倍</text>
+</svg>
