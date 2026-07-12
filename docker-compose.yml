@@ -1,0 +1,12 @@
+name: notebook
+
+services:
+  notebook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: harbor.any.me.uk/library/notebook:latest
+    container_name: notebook
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3030:80"

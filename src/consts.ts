@@ -4,7 +4,7 @@ export const SITE_DESCRIPTION = '用 Obsidian 写作，用 Astro 发布的个人
 export const SITE_AUTHOR = '你的名字';
 
 /** 部署域名，构建 RSS / sitemap 会用到（不要带 https://） */
-export const SITE_URL = 'https://example.com';
+export const SITE_URL = 'https://notebook.any.me.uk';
 
 /**
  * Obsidian 库路径（给 scripts/sync-vault.mjs 用）

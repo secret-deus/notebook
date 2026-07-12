@@ -9,7 +9,7 @@ import { remarkObsidian } from './src/plugins/remark-obsidian.mjs';
 // https://astro.build/config
 // Astro 7 默认 Sätteri 不跑 remark 插件；笔记博客需要 [[wikilink]]，改用 unified
 export default defineConfig({
-	site: 'https://example.com',
+	site: 'https://notebook.any.me.uk',
 	integrations: [mdx(), sitemap()],
 	markdown: {
 		processor: unified({
