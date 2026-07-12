@@ -1,0 +1,110 @@
+# Gitea Actions: notebook build -> Harbor -> deploy
+# Runner label: vps-host (host mode, docker on 23.80.82.123)
+name: notebook-ci
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy to production after successful build
+        type: boolean
+        default: true
+
+env:
+  HARBOR_HOST: harbor.any.me.uk
+  IMAGE_NAME: harbor.any.me.uk/notebook/notebook
+  COMPOSE_DIR: /opt/notebook
+  SITE_URL: https://notebook.any.me.uk
+  PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+jobs:
+  build:
+    name: build-push-deploy
+    runs-on: vps-host
+    steps:
+      - name: Host toolchain
+        run: |
+          set -euo pipefail
+          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          command -v docker
+          docker version --format '{{.Server.Version}}' || docker version
+          command -v git
+          command -v curl
+
+      # host runner has no Node; avoid actions/checkout (needs node)
+      - name: Checkout
+        run: |
+          set -euo pipefail
+          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          rm -rf /tmp/notebook-ci-work
+          mkdir -p /tmp/notebook-ci-work
+          cd /tmp/notebook-ci-work
+          git clone --depth 1 --branch "${{ github.ref_name }}" \
+            "https://oauth2:${{ github.token }}@git.any.me.uk/${{ github.repository }}.git" repo
+          cd repo
+          pwd
+          ls -la | head
+          test -f Dockerfile
+          test -f package.json
+          test -f docker/nginx.conf
+
+      - name: Docker login Harbor
+        run: |
+          set -euo pipefail
+          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          echo "${{ secrets.HARBOR_PASSWORD }}" | docker login "${HARBOR_HOST}" -u "${{ secrets.HARBOR_USERNAME }}" --password-stdin
+
+      - name: Build image
+        working-directory: /tmp/notebook-ci-work/repo
+        run: |
+          set -euo pipefail
+          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          SHA=$(git rev-parse --short HEAD)
+          export DOCKER_BUILDKIT=1
+          docker build \
+            -t "${IMAGE_NAME}:latest" \
+            -t "${IMAGE_NAME}:${SHA}" \
+            -f Dockerfile \
+            .
+          # hard check: static site root must exist in image
+          cid=$(docker create "${IMAGE_NAME}:latest")
+          docker cp "${cid}:/usr/share/nginx/html/index.html" /tmp/ci-notebook-index.html
+          docker rm "${cid}" >/dev/null
+          test -s /tmp/ci-notebook-index.html
+          echo "image_ok sha=${SHA}"
+
+      - name: Push image
+        working-directory: /tmp/notebook-ci-work/repo
+        run: |
+          set -euo pipefail
+          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          SHA=$(git rev-parse --short HEAD)
+          docker push "${IMAGE_NAME}:latest"
+          docker push "${IMAGE_NAME}:${SHA}"
+          echo "pushed latest + ${SHA}"
+
+      - name: Deploy production
+        if: github.event_name == 'push' || inputs.deploy == true || inputs.deploy == 'true'
+        run: |
+          set -euo pipefail
+          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+          cd "${COMPOSE_DIR}"
+          test -f docker-compose.yml
+          # .env stays on server under /opt/notebook/src/.env — not used by static nginx image
+          docker compose pull || true
+          docker compose up -d --force-recreate
+          for i in $(seq 1 24); do
+            st=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' notebook 2>/dev/null || echo missing)
+            echo "t=${i} health=${st}"
+            if [ "${st}" = "healthy" ] || [ "${st}" = "running" ]; then
+              break
+            fi
+            sleep 3
+          done
+          curl -fsS -o /dev/null --max-time 20 "http://127.0.0.1:3030/"
+          curl -fsS -o /dev/null --max-time 20 "http://127.0.0.1:3030/notes/" || true
+          curl -fsS -o /dev/null --max-time 20 "${SITE_URL}/"
+          curl -fsS -o /dev/null --max-time 20 "${SITE_URL}/notes/" || true
+          echo "deploy_ok"
