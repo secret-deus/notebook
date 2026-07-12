@@ -10,7 +10,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "sync:vault": "node scripts/sync-vault.mjs"
+    "sync:vault": "node scripts/sync-vault.mjs",
+    "sync:nutstore": "node scripts/sync-nutstore.mjs",
+    "sync:nutstore:webdav": "node scripts/sync-nutstore.mjs --webdav"
   },
   "dependencies": {
     "@astrojs/mdx": "^7.0.2",

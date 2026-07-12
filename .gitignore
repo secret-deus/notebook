@@ -15,6 +15,10 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+.env.local
+
+# nutstore / vault download cache
+.cache/
 
 # OS / IDE
 .DS_Store

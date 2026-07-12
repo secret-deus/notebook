@@ -7,7 +7,11 @@ export const SITE_AUTHOR = '你的名字';
 export const SITE_URL = 'https://notebook.any.me.uk';
 
 /**
- * Obsidian 库路径（给 scripts/sync-vault.mjs 用）
- * 也可用环境变量 OBSIDIAN_VAULT 覆盖
+ * 默认本地库路径（scripts/sync-vault.mjs / sync-nutstore.mjs）
+ * 优先级实际由脚本决定：
+ *   OBSIDIAN_VAULT / NUTSTORE_VAULT 环境变量 或 .env
+ *   → 本字段
+ * 坚果云：把同步盘里的库路径写到 .env 的 NUTSTORE_VAULT
+ * WebDAV：见 .env.example 的 NUTSTORE_WEBDAV_*
  */
 export const DEFAULT_VAULT_PATH = 'C:/Users/admin/Documents/Obsidian Vault';

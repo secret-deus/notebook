@@ -52,21 +52,46 @@ publish: true
 
 `publish: false` 或 `draft: true` 不会上线。
 
-## 从 Obsidian 同步
+## 从 Obsidian / 坚果云同步
 
-默认库路径：`C:/Users/admin/Documents/Obsidian Vault`  
-（可在 `src/consts.ts` 或环境变量 `OBSIDIAN_VAULT` 修改）
+复制 `.env.example` 为 `.env`，按你的接入方式填写。
+
+### 方式 A：本地路径（Obsidian 或坚果云同步盘）
 
 ```powershell
+# .env
+# NUTSTORE_VAULT=D:/Nutstore/我的坚果云/你的库
+# 或 OBSIDIAN_VAULT=C:/Users/admin/Documents/Obsidian Vault
+
 npm run sync:vault
-# 或
-$env:OBSIDIAN_VAULT="D:\path\to\vault"
-npm run sync:vault
-# 只预览不同步
-npm run sync:vault -- --dry-run
+# 坚果云别名命令（相同逻辑，优先读 NUTSTORE_VAULT）
+npm run sync:nutstore
+npm run sync:nutstore -- --dry-run
+npm run sync:nutstore -- --clean   # 先清空 notes 再同步
 ```
 
-会跳过 `.obsidian`、`private`、`templates` 等目录，以及 `publish: false` 的笔记。
+### 方式 B：坚果云 WebDAV（本机没有客户端）
+
+1. 打开 [坚果云账户安全](https://www.jianguoyun.com/d/account) → **添加应用密码**
+2. `.env`：
+
+```env
+NUTSTORE_WEBDAV_USER=你的邮箱
+NUTSTORE_WEBDAV_PASS=应用密码
+NUTSTORE_WEBDAV_PATH=你的库文件夹名
+```
+
+3. 拉取：
+
+```powershell
+npm run sync:nutstore -- --webdav
+```
+
+会先下载到 `.cache/nutstore-vault`，再写入 `src/content/notes/`。
+
+### 发布规则
+
+会跳过 `.obsidian`、`private`、`templates` 等目录，以及 frontmatter 里 `publish: false` / `draft: true` 的笔记。
 
 ## 双链
 
