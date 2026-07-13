@@ -4,7 +4,7 @@
  * - ![[image.png]] → 图片
  * - #tag（行内，避免标题）可选保留为纯文本（标签页走 frontmatter）
  *
- * 链接策略：优先当笔记 /notes/{slug}/，也兼容 /posts/{slug}/
+ * 链接策略：统一文章流 /posts/{slug}/
  * 文件名与 wikilink 目标保持一致即可（中文文件名 OK）。
  */
 import { visit } from 'unist-util-visit';
@@ -28,8 +28,7 @@ function guessHref(target) {
 	if (/\.(png|jpe?g|gif|webp|svg|pdf|mp4|mp3)$/i.test(slug)) {
 		return `/assets/${slug.split('/').pop()}`;
 	}
-	// 默认进 notes；posts 同名时请在正文里用标准 Markdown 链到 /posts/...
-	return `/notes/${encodeURI(slug)}/`;
+	return `/posts/${encodeURI(slug)}/`;
 }
 
 function splitTextNode(value) {

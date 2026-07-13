@@ -1,0 +1,167 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import FolderTree from '../../../components/FolderTree.astro';
+import SiteAside from '../../../components/SiteAside.astro';
+import { SITE_TITLE } from '../../../consts';
+import { getPublishedPosts } from '../../../lib/content';
+import {
+	buildNoteTree,
+	folderHref,
+	getFolderContents,
+	listAllFolderPaths,
+} from '../../../lib/tree';
+
+export async function getStaticPaths() {
+	const posts = await getPublishedPosts();
+	return listAllFolderPaths(posts).map((folder) => ({
+		params: { folder },
+		props: { folder },
+	}));
+}
+
+const { folder } = Astro.props as { folder: string };
+const posts = await getPublishedPosts();
+const tree = buildNoteTree(posts);
+const { folder: node, folders, files } = getFolderContents(posts, folder);
+
+if (!node) {
+	return Astro.redirect('/posts/');
+}
+
+const crumbs = folder.split('/').filter(Boolean);
+---
+
+<BaseLayout title={`${node.name} · 文章 · ${SITE_TITLE}`} description={`目录：${folder}`} wide>
+	<div class="page-board with-left">
+		<aside class="board-left">
+			<section class="panel">
+				<div class="panel-head">
+					<h2>目录</h2>
+					<a href="/posts/">全部</a>
+				</div>
+				<FolderTree root={tree} activePath={folder} expandDepth={2} compact />
+			</section>
+		</aside>
+
+		<div class="board-main">
+			<section class="panel page-title-block">
+				<p class="crumbs meta">
+					<a href="/posts/">文章</a>
+					{
+						crumbs.map((c, i) => {
+							const p = crumbs.slice(0, i + 1).join('/');
+							const last = i === crumbs.length - 1;
+							return (
+								<>
+									<span> / </span>
+									{last ? <span>{c}</span> : <a href={folderHref(p)}>{c}</a>}
+								</>
+							);
+						})
+					}
+				</p>
+				<h1>{node.name}</h1>
+				<p class="lede">
+					本目录共 <strong>{node.fileCount}</strong> 篇
+					{folders.length > 0 && <> · {folders.length} 个子目录</>}
+				</p>
+			</section>
+
+			{
+				folders.length > 0 && (
+					<section class="panel">
+						<div class="panel-head">
+							<h2>子目录</h2>
+						</div>
+						<ul class="folder-cards">
+							{folders.map((f) => (
+								<li>
+									<a class="folder-card" href={folderHref(f.path)}>
+										<span class="folder-card-name">📁 {f.name}</span>
+										<span class="folder-card-count">{f.fileCount} 篇</span>
+									</a>
+								</li>
+							))}
+						</ul>
+					</section>
+				)
+			}
+
+			<section class="panel">
+				<div class="panel-head">
+					<h2>文章</h2>
+					<span class="meta">{files.length} 篇</span>
+				</div>
+				{
+					files.length === 0 ? (
+						<p class="empty-hint">此目录下没有直接文章，请进入子目录。</p>
+					) : (
+						<ul class="dense-list">
+							{files.map((f) => (
+								<li>
+									<a class="dense-item" href={f.href}>
+										<div class="dense-main">
+											<span class="dense-title">{f.title}</span>
+											{f.entry.data.description && (
+												<span class="dense-desc">{f.entry.data.description}</span>
+											)}
+										</div>
+										<div class="dense-meta">
+											{f.entry.data.tags?.[0] && (
+												<span class="dense-tag">#{f.entry.data.tags[0]}</span>
+											)}
+										</div>
+									</a>
+								</li>
+							))}
+						</ul>
+					)
+				}
+			</section>
+		</div>
+
+		<SiteAside active="posts" />
+	</div>
+</BaseLayout>
+
+<style>
+	.crumbs a {
+		text-decoration: none;
+	}
+	.folder-cards {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+		gap: 0.5rem;
+	}
+	.folder-card {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.65rem 0.75rem;
+		border: 1px solid rgb(var(--line));
+		border-radius: 8px;
+		text-decoration: none;
+		color: inherit;
+		background: rgb(var(--code-bg));
+	}
+	.folder-card:hover {
+		border-color: var(--accent);
+		color: inherit;
+	}
+	.folder-card-name {
+		font-weight: 600;
+		font-size: 0.9rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.folder-card-count {
+		font-size: 0.78rem;
+		color: rgb(var(--muted));
+		flex-shrink: 0;
+	}
+</style>

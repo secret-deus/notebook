@@ -27,15 +27,15 @@ const vault =
 	process.env.NUTSTORE_LOCAL_PATH ||
 	DEFAULT_VAULT;
 
-const notesOut = path.join(root, 'src/content/notes');
+const postsOut = path.join(root, 'src/content/posts');
 const assetsOut = path.join(root, 'public/assets');
 
 try {
 	console.log(`Vault: ${vault}`);
-	console.log(`Out:   ${notesOut}`);
+	console.log(`Out:   ${postsOut}（统一文章流）`);
 	const { mdCount, assetCount, skipCount } = syncLocalVault({
 		vault,
-		notesOut,
+		postsOut,
 		assetsOut,
 		dryRun,
 		clean,

@@ -1,31 +1,19 @@
 ---
-import { type CollectionEntry, render } from 'astro:content';
-import ProseLayout from '../../layouts/ProseLayout.astro';
-import { getPublishedNotes } from '../../lib/content';
-import { titleFromId } from '../../lib/slug';
+import { getPublishedPosts } from '../../lib/content';
 
+/** 旧 /notes/* 链接 301 到 /posts/* */
 export async function getStaticPaths() {
-	const notes = await getPublishedNotes();
-	return notes.map((note) => ({
-		params: { slug: note.id },
-		props: note,
+	const posts = await getPublishedPosts();
+	return posts.map((post) => ({
+		params: { slug: post.id },
 	}));
 }
 
-type Props = CollectionEntry<'notes'>;
-const note = Astro.props;
-const { Content } = await render(note);
-const title = note.data.title || titleFromId(note.id);
+const slug = Astro.params.slug ?? '';
+const encoded = slug
+	.split('/')
+	.filter(Boolean)
+	.map(encodeURIComponent)
+	.join('/');
+return Astro.redirect(encoded ? `/posts/${encoded}/` : '/posts/', 301);
 ---
-
-<ProseLayout
-	title={title}
-	description={note.data.description || title}
-	pubDate={note.data.pubDate}
-	updatedDate={note.data.updatedDate}
-	tags={note.data.tags}
-	kind="note"
-	currentId={note.id}
->
-	<Content />
-</ProseLayout>

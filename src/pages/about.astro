@@ -2,10 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SiteAside from '../components/SiteAside.astro';
 import { SITE_AUTHOR, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
-import { getPublishedNotes, getPublishedPosts } from '../lib/content';
+import { getPublishedPosts } from '../lib/content';
 
 const posts = await getPublishedPosts();
-const notes = await getPublishedNotes();
 ---
 
 <BaseLayout title={`关于 · ${SITE_TITLE}`} description={SITE_DESCRIPTION} wide>
@@ -21,63 +20,44 @@ const notes = await getPublishedNotes();
 					<h2>这个站</h2>
 				</div>
 				<p>
-					这里是 <strong>{SITE_AUTHOR}</strong> 的笔记博客：在 <strong>Obsidian</strong> 里写，用
-					<strong>Astro</strong> 静态生成后发布。
+					<strong>{SITE_AUTHOR}</strong> 的笔记博客：在 Obsidian / 坚果云写，用 Astro 发布为<strong
+						>统一文章流</strong
+					>。
 				</p>
-				<p class="meta">
-					当前已发布：文章 {posts.length} · 笔记 {notes.length}
-				</p>
+				<p class="meta">当前已发布文章 {posts.length} 篇。</p>
 			</section>
 
 			<section class="panel">
 				<div class="panel-head">
-					<h2>内容结构</h2>
+					<h2>内容从哪来</h2>
 				</div>
 				<ul class="bullet-list">
-					<li>
-						<strong>文章</strong>（<code>src/content/posts/</code>）：有日期的长文、教程
-					</li>
-					<li>
-						<strong>笔记</strong>（<code>src/content/notes/</code>）：常青笔记，支持
-						<code>[[双链]]</code>
-					</li>
-					<li>
-						<strong>标签</strong>：frontmatter 里的 <code>tags</code> 自动聚合
-					</li>
+					<li>坚果云 <code>KnowledgeBase</code> 经 WebDAV 同步</li>
+					<li>写入 <code>src/content/posts/</code>，全部按文章发布</li>
+					<li>保留原文件夹结构，可在「文章」页按目录浏览</li>
 				</ul>
 			</section>
 
 			<section class="panel">
 				<div class="panel-head">
-					<h2>和 Obsidian 怎么配合</h2>
+					<h2>同步命令</h2>
 				</div>
 				<ol class="bullet-list numbered">
-					<li>在库里正常写 Markdown</li>
-					<li>需要上线的笔记加上 <code>publish: true</code></li>
-					<li>运行 <code>npm run sync:vault</code> 同步到本站</li>
-					<li><code>npm run dev</code> 预览，<code>npm run build</code> 构建</li>
+					<li>配置 <code>.env</code> 中的坚果云 WebDAV</li>
+					<li><code>npm run sync:nutstore:webdav</code></li>
+					<li><code>npm run dev</code> 预览 / <code>npm run build</code> 构建</li>
 				</ol>
-				<p class="meta" style="margin-top: 0.75rem">
-					站名、作者、库路径在 <code>src/consts.ts</code> 修改。
-				</p>
 			</section>
 		</div>
 
-		<SiteAside
-			active="about"
-			listTitle="最近内容"
-			listHref="/"
-			showKind={true}
-			tipsTitle="技术栈"
-			tips={['Astro 静态站点', 'Obsidian wikilink 插件', 'Git 友好 Markdown']}
-		/>
+		<SiteAside active="about" />
 	</div>
 </BaseLayout>
 
 <style>
 	.numbered {
-		padding-left: 1.25rem;
 		list-style: decimal;
+		padding-left: 1.25rem;
 	}
 	.board-main p {
 		margin: 0 0 0.75rem;

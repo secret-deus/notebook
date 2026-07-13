@@ -1,0 +1,20 @@
+---
+import { getPublishedPosts } from '../../../lib/content';
+import { listAllFolderPaths } from '../../../lib/tree';
+
+export async function getStaticPaths() {
+	const posts = await getPublishedPosts();
+	return listAllFolderPaths(posts).map((folder) => ({
+		params: { folder },
+	}));
+}
+
+const folder = Astro.params.folder ?? '';
+// Location header 必须是 ASCII：路径段分别 encode
+const encoded = folder
+	.split('/')
+	.filter(Boolean)
+	.map(encodeURIComponent)
+	.join('/');
+return Astro.redirect(encoded ? `/posts/folder/${encoded}/` : '/posts/', 301);
+---

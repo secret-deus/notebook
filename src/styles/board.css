@@ -10,7 +10,12 @@
 }
 
 .page-board.with-left {
-	grid-template-columns: minmax(210px, 260px) minmax(0, 1fr) minmax(240px, 300px);
+	grid-template-columns: minmax(210px, 280px) minmax(0, 1fr) minmax(240px, 300px);
+}
+
+/* 首页也是三栏但中间更宽 */
+.page-board.home-board {
+	grid-template-columns: minmax(200px, 260px) minmax(0, 1.25fr) minmax(230px, 280px);
 }
 
 .page-board .board-main,

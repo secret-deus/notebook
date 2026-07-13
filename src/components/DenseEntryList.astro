@@ -1,22 +1,16 @@
 ---
-import type { NoteEntry, PostEntry } from '../lib/content';
+import type { PostEntry } from '../lib/content';
 import { entryHref, entryTitle } from '../lib/content';
 import FormattedDate from './FormattedDate.astro';
 
 interface Props {
-	entries: Array<PostEntry | NoteEntry>;
+	entries: PostEntry[];
 	empty?: string;
 	showKind?: boolean;
 	clamp?: number;
 }
 
-const {
-	entries,
-	empty = '暂无内容',
-	showKind = false,
-	clamp,
-} = Astro.props;
-
+const { entries, empty = '暂无内容', showKind = false, clamp } = Astro.props;
 const list = typeof clamp === 'number' ? entries.slice(0, clamp) : entries;
 ---
 
@@ -26,30 +20,23 @@ const list = typeof clamp === 'number' ? entries.slice(0, clamp) : entries;
 	) : (
 		<ul class="dense-list">
 			{list.map((entry) => {
-				const date =
-					entry.collection === 'posts'
-						? entry.data.pubDate
-						: (entry.data.updatedDate ?? entry.data.pubDate);
+				const date = entry.data.updatedDate ?? entry.data.pubDate;
 				const desc = entry.data.description;
 				const tags = entry.data.tags ?? [];
-				const kind = entry.collection === 'posts' ? '文章' : '笔记';
+				const showDate = date && date.valueOf() > 0;
 				return (
 					<li>
 						<a class="dense-item" href={entryHref(entry)}>
 							<div class="dense-main">
 								<span class="dense-title">
-									{showKind && (
-										<span
-											class:list={['kind-dot', { note: entry.collection === 'notes' }]}
-											title={kind}
-										/>
-									)}
+									{showKind && <span class="kind-dot" title="文章" />}
 									{entryTitle(entry)}
 								</span>
 								{desc && <span class="dense-desc">{desc}</span>}
+								<span class="dense-path meta">{entry.id}</span>
 							</div>
 							<div class="dense-meta">
-								{date && <FormattedDate date={date} />}
+								{showDate && <FormattedDate date={date} />}
 								{tags[0] && <span class="dense-tag">#{tags[0]}</span>}
 							</div>
 						</a>
@@ -59,3 +46,13 @@ const list = typeof clamp === 'number' ? entries.slice(0, clamp) : entries;
 		</ul>
 	)
 }
+
+<style>
+	.dense-path {
+		font-size: 0.72rem;
+		opacity: 0.75;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+</style>

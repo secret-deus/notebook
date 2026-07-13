@@ -1,50 +1,136 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import DenseEntryList from '../../components/DenseEntryList.astro';
+import FolderTree from '../../components/FolderTree.astro';
 import SiteAside from '../../components/SiteAside.astro';
 import { SITE_TITLE } from '../../consts';
-import { getPublishedNotes, getPublishedPosts } from '../../lib/content';
+import { getPublishedPosts } from '../../lib/content';
+import { buildNoteTree, folderHref, getTopFolders } from '../../lib/tree';
 
 const posts = await getPublishedPosts();
-const notes = await getPublishedNotes();
+const tree = buildNoteTree(posts);
+const topFolders = getTopFolders(posts);
+const rootEntries = posts.filter((n) => !n.id.includes('/'));
 ---
 
-<BaseLayout title={`文章 · ${SITE_TITLE}`} description="按时间排序的博文列表" wide>
-	<div class="page-board">
+<BaseLayout title={`文章 · ${SITE_TITLE}`} description="知识库文章（含从坚果云同步的笔记）" wide>
+	<div class="page-board with-left">
+		<aside class="board-left">
+			<section class="panel">
+				<div class="panel-head">
+					<h2>目录树</h2>
+					<span class="meta">{posts.length}</span>
+				</div>
+				<FolderTree root={tree} expandDepth={1} compact />
+			</section>
+		</aside>
+
 		<div class="board-main">
 			<section class="panel page-title-block">
 				<h1>文章</h1>
 				<p class="lede">
-					正式长文与教程，按发布日期排序。共 <strong>{posts.length}</strong> 篇。
+					统一文章流：KnowledgeBase 笔记按文章发布。共 <strong>{posts.length}</strong> 篇 ·
+					<strong>{topFolders.length}</strong> 个顶层目录。
 				</p>
 			</section>
 
+			{
+				topFolders.length > 0 && (
+					<section class="panel">
+						<div class="panel-head">
+							<h2>顶层目录</h2>
+						</div>
+						<ul class="folder-cards">
+							{topFolders.map((f) => (
+								<li>
+									<a class="folder-card" href={folderHref(f.path)}>
+										<span class="folder-card-name">📁 {f.name}</span>
+										<span class="folder-card-count">{f.count} 篇</span>
+									</a>
+								</li>
+							))}
+						</ul>
+					</section>
+				)
+			}
+
+			{
+				rootEntries.length > 0 && (
+					<section class="panel">
+						<div class="panel-head">
+							<h2>根目录</h2>
+							<span class="meta">{rootEntries.length}</span>
+						</div>
+						<DenseEntryList entries={rootEntries} showKind={false} />
+					</section>
+				)
+			}
+
 			<section class="panel">
 				<div class="panel-head">
-					<h2>全部文章</h2>
-					<span class="meta">{posts.length} 篇</span>
+					<h2>最近更新</h2>
 				</div>
-				<DenseEntryList
-					entries={posts}
-					empty="还没有文章。在 src/content/posts/ 新建 Markdown 即可。"
-					showKind={false}
-				/>
+				<DenseEntryList entries={posts.slice(0, 40)} showKind={false} empty="暂无文章" />
+				{
+					posts.length > 40 && (
+						<p class="meta more-hint">仅显示最近 40 篇。请用左侧目录进入完整结构。</p>
+					)
+				}
 			</section>
 		</div>
 
 		<SiteAside
 			active="posts"
-			listTitle="最近笔记"
-			listHref="/notes/"
-			listEntries={notes}
-			listEmpty="暂无笔记"
-			showKind={false}
-			tipsTitle="写作提示"
+			listTitle="热门目录"
+			listHref="/posts/"
+			tipsTitle="说明"
 			tips={[
-				'文章适合完整叙述、教程与周记',
-				'frontmatter 需要 <code>title</code> 与 <code>pubDate</code>',
-				'草稿用 <code>draft: true</code> 隐藏',
+				'笔记与文章已合并为<strong>文章流</strong>',
+				'来源：坚果云 KnowledgeBase',
+				'私密内容用 <code>publish: false</code>',
 			]}
 		/>
 	</div>
 </BaseLayout>
+
+<style>
+	.folder-cards {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+		gap: 0.5rem;
+	}
+	.folder-card {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.65rem 0.75rem;
+		border: 1px solid rgb(var(--line));
+		border-radius: 8px;
+		text-decoration: none;
+		color: inherit;
+		background: rgb(var(--code-bg));
+	}
+	.folder-card:hover {
+		border-color: var(--accent);
+		color: inherit;
+	}
+	.folder-card-name {
+		font-weight: 600;
+		font-size: 0.9rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.folder-card-count {
+		font-size: 0.78rem;
+		color: rgb(var(--muted));
+		flex-shrink: 0;
+	}
+	.more-hint {
+		margin: 0.75rem 0 0;
+	}
+</style>

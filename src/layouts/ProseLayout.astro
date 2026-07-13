@@ -1,11 +1,13 @@
 ---
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
-import type { NoteEntry, PostEntry } from '../lib/content';
+import type { PostEntry } from '../lib/content';
 import BaseLayout from './BaseLayout.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import DenseEntryList from '../components/DenseEntryList.astro';
-import { getPublishedNotes, getPublishedPosts, getTagMap } from '../lib/content';
+import { getPublishedPosts, getTagMap } from '../lib/content';
+import { tagHref } from '../lib/tags';
+import { folderHref } from '../lib/tree';
 
 interface Props {
 	title: string;
@@ -15,9 +17,8 @@ interface Props {
 	heroImage?: ImageMetadata;
 	tags?: string[];
 	kind?: 'post' | 'note';
-	/** 当前条目 id，用于排除自身 */
 	currentId?: string;
-	related?: Array<PostEntry | NoteEntry>;
+	related?: PostEntry[];
 }
 
 const {
@@ -27,40 +28,36 @@ const {
 	updatedDate,
 	heroImage,
 	tags = [],
-	kind = 'post',
 	currentId,
 	related,
 } = Astro.props;
 
-const [posts, notes, tagMap] = await Promise.all([
-	getPublishedPosts(),
-	getPublishedNotes(),
-	getTagMap(),
-]);
-
-const pool = kind === 'post' ? posts : notes;
-const others = pool.filter((e) => e.id !== currentId);
+const posts = await getPublishedPosts();
+const tagMap = await getTagMap();
+const others = posts.filter((e) => e.id !== currentId);
 
 const relatedResolved =
 	related ??
 	(() => {
-		if (!tags.length) return others.slice(0, 6);
+		if (!tags.length) return others.slice(0, 8);
 		const scored = others
 			.map((e) => {
 				const et = new Set(e.data.tags ?? []);
-				const score = tags.reduce((n, t) => n + (et.has(t) ? 1 : 0), 0);
+				const score = tags.reduce((n, t) => n + (et.has(String(t)) ? 1 : 0), 0);
 				return { e, score };
 			})
 			.filter((x) => x.score > 0)
 			.sort((a, b) => b.score - a.score)
 			.map((x) => x.e);
-		return (scored.length ? scored : others).slice(0, 6);
+		return (scored.length ? scored : others).slice(0, 8);
 	})();
 
-const otherKindList = (kind === 'post' ? notes : posts).slice(0, 6);
 const topTags = [...tagMap.entries()]
 	.sort((a, b) => b[1].length - a[1].length)
 	.slice(0, 8);
+
+const parentFolder =
+	currentId && currentId.includes('/') ? currentId.split('/').slice(0, -1).join('/') : '';
 ---
 
 <BaseLayout title={title} description={description} wide>
@@ -74,15 +71,15 @@ const topTags = [...tagMap.entries()]
 				)
 			}
 			<header class="article-head">
-				<p class="kind meta">{kind === 'post' ? '文章' : '笔记'}</p>
+				<p class="kind meta">文章</p>
 				<h1>{title}</h1>
 				{
 					(pubDate || updatedDate) && (
 						<p class="meta">
-							{pubDate && <FormattedDate date={pubDate} />}
+							{pubDate && pubDate.valueOf() > 0 && <FormattedDate date={pubDate} />}
 							{updatedDate && (
 								<>
-									{pubDate ? ' · ' : ''}
+									{pubDate && pubDate.valueOf() > 0 ? ' · ' : ''}
 									更新于 <FormattedDate date={updatedDate} />
 								</>
 							)}
@@ -93,7 +90,7 @@ const topTags = [...tagMap.entries()]
 					tags.length > 0 && (
 						<div class="tag-row">
 							{tags.map((tag) => (
-								<a class="tag" href={`/tags/${encodeURIComponent(tag)}/`}>
+								<a class="tag" href={tagHref(String(tag))}>
 									#{tag}
 								</a>
 							))}
@@ -112,24 +109,33 @@ const topTags = [...tagMap.entries()]
 					<h2>本页</h2>
 				</div>
 				<ul class="bullet-list">
-					<li>类型：{kind === 'post' ? '文章' : '笔记'}</li>
-					{pubDate && (
-						<li>
-							发布：
-							<FormattedDate date={pubDate} />
-						</li>
-					)}
-					{updatedDate && (
-						<li>
-							更新：
-							<FormattedDate date={updatedDate} />
-						</li>
-					)}
+					<li>类型：文章</li>
+					{
+						pubDate && pubDate.valueOf() > 0 && (
+							<li>
+								发布：
+								<FormattedDate date={pubDate} />
+							</li>
+						)
+					}
+					{
+						updatedDate && (
+							<li>
+								更新：
+								<FormattedDate date={updatedDate} />
+							</li>
+						)
+					}
+					{
+						parentFolder && (
+							<li>
+								目录：
+								<a href={folderHref(parentFolder)}>{parentFolder}</a>
+							</li>
+						)
+					}
 					<li>
-						返回
-						<a href={kind === 'post' ? '/posts/' : '/notes/'}>
-							{kind === 'post' ? '文章列表' : '笔记列表'}
-						</a>
+						返回 <a href="/posts/">文章列表</a>
 					</li>
 				</ul>
 			</section>
@@ -142,7 +148,7 @@ const topTags = [...tagMap.entries()]
 						</div>
 						<div class="tag-cloud">
 							{tags.map((tag) => (
-								<a class="tag" href={`/tags/${encodeURIComponent(tag)}/`}>
+								<a class="tag" href={tagHref(String(tag))}>
 									#{tag}
 								</a>
 							))}
@@ -153,18 +159,10 @@ const topTags = [...tagMap.entries()]
 
 			<section class="panel">
 				<div class="panel-head">
-					<h2>{kind === 'post' ? '相关文章' : '相关笔记'}</h2>
-					<a href={kind === 'post' ? '/posts/' : '/notes/'}>全部 →</a>
+					<h2>相关文章</h2>
+					<a href="/posts/">全部 →</a>
 				</div>
 				<DenseEntryList entries={relatedResolved} empty="暂无相关内容" showKind={false} />
-			</section>
-
-			<section class="panel">
-				<div class="panel-head">
-					<h2>{kind === 'post' ? '最近笔记' : '最近文章'}</h2>
-					<a href={kind === 'post' ? '/notes/' : '/posts/'}>全部 →</a>
-				</div>
-				<DenseEntryList entries={otherKindList} empty="暂无" showKind={false} />
 			</section>
 
 			{
@@ -176,7 +174,7 @@ const topTags = [...tagMap.entries()]
 						</div>
 						<div class="tag-cloud">
 							{topTags.map(([tag, items]) => (
-								<a class="tag" href={`/tags/${encodeURIComponent(tag)}/`}>
+								<a class="tag" href={tagHref(tag)}>
 									#{tag}
 									<span class="count">{items.length}</span>
 								</a>
@@ -206,15 +204,11 @@ const topTags = [...tagMap.entries()]
 	}
 	.hero-image {
 		margin: 0 0 1.1rem;
-		animation: soft-scale var(--dur-slow) var(--ease-out) both;
 	}
 	.hero-image :global(img) {
 		width: 100%;
 		display: block;
 		box-shadow: var(--shadow);
-	}
-	.prose {
-		animation: fade-up var(--dur-slow) var(--ease-out) 80ms both;
 	}
 	.prose :global(> *:first-child) {
 		margin-top: 0;

@@ -1,0 +1,152 @@
+---
+import type { TreeNode } from '../lib/tree';
+import { folderHref } from '../lib/tree';
+import TreeBranch from './TreeBranch.astro';
+
+interface Props {
+	nodes: TreeNode[];
+	activePath?: string;
+	expandDepth?: number;
+	depth?: number;
+}
+
+const { nodes, activePath = '', expandDepth = 1, depth = 0 } = Astro.props;
+
+function isOpen(path: string): boolean {
+	if (depth < expandDepth) return true;
+	if (!activePath) return false;
+	return activePath === path || activePath.startsWith(path + '/');
+}
+---
+
+<ul class:list={[{ 'tree-root': depth === 0 }]}>
+	{
+		nodes.map((node) => {
+			if (node.kind === 'folder') {
+				const open = isOpen(node.path);
+				const active = activePath === node.path;
+				return (
+					<li class:list={['tree-folder', { 'is-open': open }]} data-tree-folder data-path={node.path}>
+						<div class:list={['tree-row', { 'is-active': active }]}>
+							<button type="button" class="tree-toggle" data-tree-toggle aria-label="展开/折叠">
+								▶
+							</button>
+							<a class="tree-link" href={folderHref(node.path)}>
+								<span class="folder-icon" aria-hidden="true">
+									📁
+								</span>
+								<span class="tree-name">{node.name}</span>
+								<span class="tree-count">{node.fileCount}</span>
+							</a>
+						</div>
+						{node.children.length > 0 && (
+							<TreeBranch
+								nodes={node.children}
+								activePath={activePath}
+								expandDepth={expandDepth}
+								depth={depth + 1}
+							/>
+						)}
+					</li>
+				);
+			}
+			const active = activePath === node.id;
+			return (
+				<li class="tree-file">
+					<a class:list={['tree-row', 'tree-link', { 'is-active': active }]} href={node.href}>
+						<span class="file-spacer" aria-hidden="true" />
+						<span class="file-icon" aria-hidden="true">
+							📄
+						</span>
+						<span class="tree-name">{node.title}</span>
+					</a>
+				</li>
+			);
+		})
+	}
+</ul>
+
+<style>
+	ul {
+		list-style: none;
+		margin: 0;
+		padding: 0 0 0 0.75rem;
+		border-left: 1px solid rgb(var(--line));
+		margin-left: 0.4rem;
+	}
+	ul.tree-root {
+		padding-left: 0;
+		border-left: 0;
+		margin-left: 0;
+	}
+	li {
+		margin: 0.04rem 0;
+	}
+	.tree-row {
+		display: flex;
+		align-items: center;
+		gap: 0.15rem;
+		min-width: 0;
+	}
+	.tree-link {
+		display: flex;
+		align-items: center;
+		gap: 0.3rem;
+		flex: 1;
+		min-width: 0;
+		padding: 0.28rem 0.35rem;
+		border-radius: 6px;
+		text-decoration: none;
+		color: inherit;
+	}
+	.tree-link:hover,
+	.tree-row.is-active .tree-link,
+	a.tree-row.is-active {
+		background: var(--accent-soft);
+		color: var(--accent-dark);
+	}
+	.tree-toggle {
+		appearance: none;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+		width: 1.2rem;
+		height: 1.2rem;
+		padding: 0;
+		color: rgb(var(--muted));
+		flex-shrink: 0;
+		font-size: 0.65rem;
+		line-height: 1;
+		transition: transform 0.15s ease;
+	}
+	.tree-folder.is-open > .tree-row .tree-toggle {
+		transform: rotate(90deg);
+	}
+	.tree-folder:not(.is-open) > ul {
+		display: none;
+	}
+	.tree-name {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		min-width: 0;
+		font-size: 0.88rem;
+	}
+	.tree-count {
+		margin-left: auto;
+		font-size: 0.72rem;
+		color: rgb(var(--muted));
+		flex-shrink: 0;
+		font-variant-numeric: tabular-nums;
+	}
+	.file-spacer {
+		width: 1.2rem;
+		flex-shrink: 0;
+	}
+	.folder-icon,
+	.file-icon {
+		flex-shrink: 0;
+		font-size: 0.85em;
+		opacity: 0.85;
+	}
+</style>

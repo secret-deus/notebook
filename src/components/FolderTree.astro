@@ -1,0 +1,39 @@
+---
+import type { TreeFolder } from '../lib/tree';
+import TreeBranch from './TreeBranch.astro';
+
+interface Props {
+	root: TreeFolder;
+	activePath?: string;
+	expandDepth?: number;
+	compact?: boolean;
+}
+
+const { root, activePath = '', expandDepth = 1, compact = false } = Astro.props;
+---
+
+<nav class:list={['folder-tree', { compact }]} aria-label="笔记目录">
+	<TreeBranch nodes={root.children} activePath={activePath} expandDepth={expandDepth} depth={0} />
+</nav>
+
+<script>
+	document.querySelectorAll('[data-tree-toggle]').forEach((btn) => {
+		btn.addEventListener('click', (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			const li = (btn as HTMLElement).closest('[data-tree-folder]');
+			li?.classList.toggle('is-open');
+		});
+	});
+</script>
+
+<style>
+	.folder-tree {
+		max-height: min(70vh, 36rem);
+		overflow: auto;
+		padding-right: 0.25rem;
+	}
+	.folder-tree.compact {
+		max-height: min(50vh, 24rem);
+	}
+</style>

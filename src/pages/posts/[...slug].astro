@@ -20,7 +20,7 @@ const title = post.data.title || titleFromId(post.id);
 
 <ProseLayout
 	title={title}
-	description={post.data.description}
+	description={post.data.description || title}
 	pubDate={post.data.pubDate}
 	updatedDate={post.data.updatedDate}
 	heroImage={post.data.heroImage}

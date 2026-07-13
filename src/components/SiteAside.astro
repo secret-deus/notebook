@@ -1,72 +1,42 @@
 ---
 /**
- * 全站通用侧栏：快捷入口 + 统计 + 标签 + 另一类内容列表
+ * 全站通用侧栏：快捷入口 + 统计 + 标签 + 最近文章
  */
-import type { NoteEntry, PostEntry } from '../lib/content';
-import { getPublishedNotes, getPublishedPosts, getTagMap } from '../lib/content';
+import type { PostEntry } from '../lib/content';
+import { getPublishedPosts, getTagMap } from '../lib/content';
+import { tagHref } from '../lib/tags';
 import DenseEntryList from './DenseEntryList.astro';
 
 interface Props {
-	/** 当前频道，用于高亮快捷入口 */
 	active?: 'home' | 'posts' | 'notes' | 'tags' | 'about';
-	/** 侧栏「相关列表」标题 */
 	listTitle?: string;
 	listHref?: string;
-	listEntries?: Array<PostEntry | NoteEntry>;
+	listEntries?: PostEntry[];
 	listEmpty?: string;
 	showKind?: boolean;
-	/** 额外说明文案 */
 	tips?: string[];
 	tipsTitle?: string;
 }
 
 const {
 	active,
-	listTitle = '最近更新',
-	listHref,
+	listTitle = '最近文章',
+	listHref = '/posts/',
 	listEntries,
 	listEmpty = '暂无内容',
-	showKind = true,
+	showKind = false,
 	tips,
 	tipsTitle = '说明',
 } = Astro.props;
 
-const [posts, notes, tagMap] = await Promise.all([
-	getPublishedPosts(),
-	getPublishedNotes(),
-	getTagMap(),
-]);
+const posts = await getPublishedPosts();
+const tagMap = await getTagMap();
 
 const tags = [...tagMap.entries()]
 	.sort((a, b) => b[1].length - a[1].length)
 	.slice(0, 10);
 
-const fallbackList =
-	listEntries ??
-	(active === 'posts'
-		? notes.slice(0, 8)
-		: active === 'notes'
-			? posts.slice(0, 8)
-			: [...posts, ...notes]
-					.sort((a, b) => {
-						const da =
-							a.collection === 'posts'
-								? a.data.pubDate
-								: (a.data.updatedDate ?? a.data.pubDate ?? new Date(0));
-						const db =
-							b.collection === 'posts'
-								? b.data.pubDate
-								: (b.data.updatedDate ?? b.data.pubDate ?? new Date(0));
-						return db.valueOf() - da.valueOf();
-					})
-					.slice(0, 8));
-
-const resolvedListTitle =
-	listTitle ||
-	(active === 'posts' ? '最近笔记' : active === 'notes' ? '最近文章' : '最近更新');
-
-const resolvedListHref =
-	listHref || (active === 'posts' ? '/notes/' : active === 'notes' ? '/posts/' : '/');
+const fallbackList = listEntries ?? posts.slice(0, 8);
 ---
 
 <aside class="board-side">
@@ -78,11 +48,8 @@ const resolvedListHref =
 			<a href="/" class:list={[{ active: active === 'home' }]}>
 				<span>首页</span><em>⌂</em>
 			</a>
-			<a href="/posts/" class:list={[{ active: active === 'posts' }]}>
+			<a href="/posts/" class:list={[{ active: active === 'posts' || active === 'notes' }]}>
 				<span>文章</span><em>{posts.length}</em>
-			</a>
-			<a href="/notes/" class:list={[{ active: active === 'notes' }]}>
-				<span>笔记</span><em>{notes.length}</em>
 			</a>
 			<a href="/tags/" class:list={[{ active: active === 'tags' }]}>
 				<span>标签</span><em>{tagMap.size}</em>
@@ -106,24 +73,16 @@ const resolvedListHref =
 				<span>文章</span>
 			</div>
 			<div class="metric">
-				<strong>{notes.length}</strong>
-				<span>笔记</span>
-			</div>
-			<div class="metric">
 				<strong>{tagMap.size}</strong>
 				<span>标签</span>
-			</div>
-			<div class="metric">
-				<strong>{posts.length + notes.length}</strong>
-				<span>合计</span>
 			</div>
 		</div>
 	</section>
 
 	<section class="panel">
 		<div class="panel-head">
-			<h2>{resolvedListTitle}</h2>
-			{resolvedListHref && <a href={resolvedListHref}>全部 →</a>}
+			<h2>{listTitle}</h2>
+			{listHref && <a href={listHref}>全部 →</a>}
 		</div>
 		<DenseEntryList entries={fallbackList} empty={listEmpty} showKind={showKind} />
 	</section>
@@ -137,7 +96,7 @@ const resolvedListHref =
 				</div>
 				<div class="tag-cloud">
 					{tags.map(([tag, items]) => (
-						<a class="tag" href={`/tags/${encodeURIComponent(tag)}/`}>
+						<a class="tag" href={tagHref(tag)}>
 							#{tag}
 							<span class="count">{items.length}</span>
 						</a>

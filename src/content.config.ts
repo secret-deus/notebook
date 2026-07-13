@@ -19,51 +19,43 @@ const looseBool = z
 	})
 	.optional();
 
-/** 正式博文：偏时间线、可带封面 */
+/**
+ * 统一文章流：坚果云 / Obsidian 笔记也当文章发
+ * schema 宽松，避免同步后构建失败
+ */
 const posts = defineCollection({
 	loader: glob({ base: './src/content/posts', pattern: '**/*.{md,mdx}' }),
 	schema: ({ image }) =>
-		z.object({
-			title: z.string(),
-			description: z.string().default(''),
-			pubDate: z.coerce.date(),
-			updatedDate: z.coerce.date().optional(),
-			heroImage: z.optional(image()),
-			tags,
-			draft: z.boolean().default(false),
-		}),
+		z
+			.object({
+				title: z.union([z.string(), z.number()]).transform(String).optional(),
+				description: z
+					.union([z.string(), z.number()])
+					.transform(String)
+					.optional(),
+				pubDate: z.coerce.date().optional(),
+				updatedDate: z.coerce.date().optional(),
+				date: z.coerce.date().optional(),
+				created: z.coerce.date().optional(),
+				updated: z.coerce.date().optional(),
+				heroImage: z.optional(image()),
+				tags,
+				publish: looseBool,
+				draft: looseBool,
+			})
+			.passthrough()
+			.transform((data) => {
+				const pubDate = data.pubDate ?? data.date ?? data.created ?? new Date(0);
+				return {
+					...data,
+					title: data.title,
+					description: data.description ?? '',
+					publish: data.publish ?? true,
+					draft: data.draft ?? false,
+					pubDate,
+					updatedDate: data.updatedDate ?? data.updated,
+				};
+			}),
 });
 
-/**
- * 常青笔记 / Obsidian / 坚果云
- * 宽松 schema：允许额外 frontmatter 字段，避免同步后构建失败
- */
-const notes = defineCollection({
-	loader: glob({ base: './src/content/notes', pattern: '**/*.{md,mdx}' }),
-	schema: z
-		.object({
-			title: z.union([z.string(), z.number()]).transform(String).optional(),
-			description: z.union([z.string(), z.number()]).transform(String).optional(),
-			pubDate: z.coerce.date().optional(),
-			updatedDate: z.coerce.date().optional(),
-			// 常见别名
-			date: z.coerce.date().optional(),
-			created: z.coerce.date().optional(),
-			updated: z.coerce.date().optional(),
-			tags,
-			/** Obsidian / 同步脚本可用 publish: false 排除私密笔记 */
-			publish: looseBool,
-			draft: looseBool,
-		})
-		.passthrough()
-		.transform((data) => ({
-			...data,
-			publish: data.publish ?? true,
-			draft: data.draft ?? false,
-			// 日期别名回填
-			pubDate: data.pubDate ?? data.date ?? data.created,
-			updatedDate: data.updatedDate ?? data.updated,
-		})),
-});
-
-export const collections = { posts, notes };
+export const collections = { posts };

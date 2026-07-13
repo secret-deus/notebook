@@ -14,7 +14,7 @@
  *
  * 其它:
  *   --dry-run  只列文件
- *   --clean    同步前清空 src/content/notes
+ *   --clean    同步前清空 src/content/posts
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -37,7 +37,7 @@ const dryRun = process.argv.includes('--dry-run');
 const clean = process.argv.includes('--clean');
 const forceWebdav = process.argv.includes('--webdav');
 
-const notesOut = path.join(root, 'src/content/notes');
+const postsOut = path.join(root, 'src/content/posts');
 const assetsOut = path.join(root, 'public/assets');
 const cacheDir = path.join(root, '.cache/nutstore-vault');
 
@@ -212,8 +212,8 @@ async function main() {
 	if (local && fs.existsSync(local) && !forceWebdav) {
 		console.log('模式: 坚果云本地同步盘');
 		console.log(`Vault: ${local}`);
-		console.log(`Out:   ${notesOut}`);
-		const r = syncLocalVault({ vault: local, notesOut, assetsOut, dryRun, clean });
+		console.log(`Out:   ${postsOut}（统一文章流）`);
+		const r = syncLocalVault({ vault: local, postsOut, assetsOut, dryRun, clean });
 		console.log(
 			dryRun
 				? `[dry-run] 将同步 ${r.mdCount} 篇笔记, ${r.assetCount} 个资源, 跳过 ${r.skipCount}`
@@ -248,7 +248,7 @@ async function main() {
 	console.log('模式: 坚果云 WebDAV');
 	console.log(`Remote: ${rootUrl}`);
 	console.log(`Cache:  ${cacheDir}`);
-	console.log(`Out:    ${notesOut}`);
+	console.log(`Out:    ${postsOut}（统一文章流）`);
 
 	console.log('列出远程文件…');
 	const files = await listRemoteFiles(rootUrl.endsWith('/') ? rootUrl : rootUrl + '/');
@@ -261,7 +261,7 @@ async function main() {
 
 	const r = syncLocalVault({
 		vault: cacheDir,
-		notesOut,
+		postsOut,
 		assetsOut,
 		dryRun: false,
 		clean,

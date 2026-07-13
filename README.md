@@ -2,9 +2,9 @@
 
 用 **Obsidian** 写作，用 **Astro** 生成静态站点的个人笔记博客。
 
-- 文章（时间线）+ 笔记（常青 / 双链）
-- 支持 `[[wikilink]]`、标签、RSS、sitemap
-- 一键从 Vault 同步公开笔记
+- **统一文章流**（坚果云笔记也当文章发布）
+- 支持 `[[wikilink]]`、目录树、标签、RSS、sitemap
+- 一键从 Vault / 坚果云 WebDAV 同步
 
 ## 快速开始
 
@@ -24,10 +24,10 @@ npm run preview  # 预览构建结果
 
 | 路径 | 说明 |
 |------|------|
-| `src/content/posts/` | 正式文章（需 `title` + `pubDate`） |
-| `src/content/notes/` | 笔记（可从 Obsidian 同步） |
+| `src/content/posts/` | 全部文章（含 KnowledgeBase 同步内容） |
 | `public/assets/` | 图片等静态资源 |
-| `src/consts.ts` | 站名、作者、默认 Vault 路径 |
+| `src/consts.ts` | 站名、作者等 |
+| `.env` | 坚果云 WebDAV 凭证（不入库） |
 
 ### 文章示例 frontmatter
 

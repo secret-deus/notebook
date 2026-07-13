@@ -1,5 +1,5 @@
 /**
- * 共享：从本地 Vault 目录同步公开笔记到 src/content/notes
+ * 共享：从本地 Vault 同步到 src/content/posts（统一文章流）
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -84,23 +84,33 @@ export function ensureTitle(raw, filename) {
 /**
  * @param {object} opts
  * @param {string} opts.vault 源目录
- * @param {string} opts.notesOut 目标 notes 目录
+ * @param {string} [opts.postsOut] 目标 posts 目录（文章流）
+ * @param {string} [opts.notesOut] 兼容旧参数，等同 postsOut
  * @param {string} opts.assetsOut 目标资源目录
  * @param {boolean} [opts.dryRun]
- * @param {boolean} [opts.clean] 同步前清空 notesOut 下旧文件（不含子目录 .gitkeep 类）
+ * @param {boolean} [opts.clean] 同步前清空目标目录
  */
-export function syncLocalVault({ vault, notesOut, assetsOut, dryRun = false, clean = false }) {
+export function syncLocalVault({
+	vault,
+	postsOut,
+	notesOut,
+	assetsOut,
+	dryRun = false,
+	clean = false,
+}) {
+	const outDir = postsOut || notesOut;
+	if (!outDir) throw new Error('需要 postsOut（或兼容 notesOut）');
 	if (!fs.existsSync(vault)) {
 		throw new Error(`Vault 路径不存在: ${vault}`);
 	}
 
-	ensureDir(notesOut);
+	ensureDir(outDir);
 	ensureDir(assetsOut);
 
 	if (clean && !dryRun) {
-		for (const name of fs.readdirSync(notesOut)) {
+		for (const name of fs.readdirSync(outDir)) {
 			if (name === '.gitkeep') continue;
-			fs.rmSync(path.join(notesOut, name), { recursive: true, force: true });
+			fs.rmSync(path.join(outDir, name), { recursive: true, force: true });
 		}
 	}
 
@@ -130,7 +140,7 @@ export function syncLocalVault({ vault, notesOut, assetsOut, dryRun = false, cle
 		}
 
 		const destRel = relPosix.replace(/\.mdx?$/i, '') + path.extname(full);
-		const dest = path.join(notesOut, destRel);
+		const dest = path.join(outDir, destRel);
 		const content = ensureTitle(raw, full);
 
 		if (dryRun) {

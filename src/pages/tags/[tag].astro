@@ -1,28 +1,24 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import DenseEntryList from '../../components/DenseEntryList.astro';
-import SiteAside from '../../components/SiteAside.astro';
 import { SITE_TITLE } from '../../consts';
-import { getPublishedNotes, getPublishedPosts, getTagMap } from '../../lib/content';
+import { getPublishedPosts } from '../../lib/content';
+import { buildTagStats, normalizeTag, tagHref } from '../../lib/tags';
 
 export async function getStaticPaths() {
-	const tagMap = await getTagMap();
-	return [...tagMap.entries()].map(([tag, entries]) => ({
-		params: { tag },
-		props: { tag, entries },
+	const posts = await getPublishedPosts();
+	const stats = buildTagStats(posts, { minCount: 1 });
+	return stats.map((t) => ({
+		params: { tag: t.tag },
+		props: { tag: t.tag, entries: t.entries },
 	}));
 }
 
 const { tag, entries } = Astro.props;
 const posts = await getPublishedPosts();
-const notes = await getPublishedNotes();
-const otherTags = [...(await getTagMap()).entries()]
-	.filter(([t]) => t !== tag)
-	.sort((a, b) => b[1].length - a[1].length)
-	.slice(0, 8);
-
-const postsInTag = entries.filter((e) => e.collection === 'posts');
-const notesInTag = entries.filter((e) => e.collection === 'notes');
+const otherTags = buildTagStats(posts, { minCount: 2 })
+	.filter((t) => normalizeTag(t.tag).toLowerCase() !== normalizeTag(tag).toLowerCase())
+	.slice(0, 12);
 ---
 
 <BaseLayout title={`#${tag} · ${SITE_TITLE}`} description={`标签：${tag}`} wide>
@@ -32,86 +28,45 @@ const notesInTag = entries.filter((e) => e.collection === 'notes');
 				<p class="meta"><a href="/tags/">← 全部标签</a></p>
 				<h1>#{tag}</h1>
 				<p class="lede">
-					共 <strong>{entries.length}</strong> 篇（文章 {postsInTag.length} · 笔记 {notesInTag.length}）
+					共 <strong>{entries.length}</strong> 篇文章
 				</p>
 			</section>
 
-			{
-				postsInTag.length > 0 && (
-					<section class="panel">
-						<div class="panel-head">
-							<h2>文章</h2>
-							<span class="meta">{postsInTag.length}</span>
-						</div>
-						<DenseEntryList entries={postsInTag} showKind={false} />
-					</section>
-				)
-			}
-
-			{
-				notesInTag.length > 0 && (
-					<section class="panel">
-						<div class="panel-head">
-							<h2>笔记</h2>
-							<span class="meta">{notesInTag.length}</span>
-						</div>
-						<DenseEntryList entries={notesInTag} showKind={false} />
-					</section>
-				)
-			}
-
-			{
-				entries.length === 0 && (
-					<section class="panel">
-						<p class="empty-hint">该标签下暂无内容。</p>
-					</section>
-				)
-			}
+			<section class="panel">
+				<div class="panel-head">
+					<h2>文章</h2>
+					<span class="meta">{entries.length}</span>
+				</div>
+				<DenseEntryList entries={entries} showKind={false} empty="该标签下暂无内容" />
+			</section>
 		</div>
 
 		<aside class="board-side">
 			<section class="panel">
 				<div class="panel-head">
-					<h2>其他标签</h2>
+					<h2>相关标签</h2>
 					<a href="/tags/">全部 →</a>
 				</div>
-				{
-					otherTags.length === 0 ? (
-						<p class="empty-hint">暂无</p>
-					) : (
-						<div class="tag-cloud">
-							{otherTags.map(([t, items]) => (
-								<a class="tag" href={`/tags/${encodeURIComponent(t)}/`}>
-									#{t}
-									<span class="count">{items.length}</span>
-								</a>
-							))}
-						</div>
-					)
-				}
+				<div class="tag-cloud">
+					{
+						otherTags.map((t) => (
+							<a class="tag" href={tagHref(t.tag)}>
+								#{t.tag}
+								<span class="count">{t.count}</span>
+							</a>
+						))
+					}
+				</div>
 			</section>
-
 			<section class="panel">
 				<div class="panel-head">
 					<h2>快捷入口</h2>
 				</div>
 				<nav class="quick-nav">
 					<a href="/posts/"><span>文章</span><em>{posts.length}</em></a>
-					<a href="/notes/"><span>笔记</span><em>{notes.length}</em></a>
 					<a href="/tags/"><span>标签</span><em>→</em></a>
 					<a href="/"><span>首页</span><em>⌂</em></a>
 				</nav>
-			</section>
-
-			<section class="panel">
-				<div class="panel-head">
-					<h2>站内最近</h2>
-				</div>
-				<DenseEntryList
-					entries={[...posts, ...notes].slice(0, 6)}
-					showKind={true}
-					empty="暂无"
-				/>
 			</section>
 		</aside>
 	</div>
